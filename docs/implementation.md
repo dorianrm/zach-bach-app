@@ -136,7 +136,7 @@ Build these first in T1, then build every page from them.
 | Component | What it is |
 | --- | --- |
 | `PageShell` | Header band, content area, and `TabBar` |
-| `TabBar` | Plan, Crawl, Bingo, Photos. Active tab in `--color-link`. |
+| `TabBar` | Plan, Crawl, Bingo, Photos, More. Active tab in `--color-link`. More holds /join, /admin and future organizer pages. |
 | `DayHeading` | Yellow uppercase section label |
 | `EventCard` | Time column plus body. `now` variant adds the yellow border and a "Now" tag. |
 | `Button` | `primary` (yellow, dark text) and `secondary` (outline in `--color-line`) |
@@ -244,7 +244,7 @@ If missed: paper passports for the route and challenges, and Zach's tally sheet 
 **Rules**
 
 - Guest PINs are stored with AES-256-GCM using `PIN_ENCRYPTION_KEY`. Only `/admin/pins` decrypts them.
-- The PIN screen says: "Pick a new PIN, not one you use elsewhere. The organizer can see it."
+- The PIN setup screen says: "Pick a PIN for your profile."
 - 5 wrong tries set `locked_until` to 10 minutes from now.
 - Admin reset clears `pin_enc`, so the guest sets a new PIN.
 - The admin PIN is never in the database. Only its hash, in Vercel.

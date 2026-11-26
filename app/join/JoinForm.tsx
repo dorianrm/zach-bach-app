@@ -39,9 +39,7 @@ export function JoinForm({ guests, next }: { guests: Option[]; next: string }) {
       <h3 className="text-xl font-semibold text-text">{picked.name}</h3>
 
       {settingUp && (
-        <p className="text-[15px] leading-normal text-body">
-          Pick a new PIN, not one you use elsewhere. The organizer can see it.
-        </p>
+        <p className="text-[15px] leading-normal text-body">Pick a PIN for your profile.</p>
       )}
 
       <label className="flex flex-col gap-2 text-sm text-body">

@@ -123,7 +123,7 @@ Name plus a 4-digit PIN. One group-chat link works for everyone, on any browser.
 4. The server sets a signed, httpOnly session cookie with the guest's id. It lasts 30 days.
 
 - Guests choose their own PIN. Dorian can view and reset any guest PIN on the admin page.
-- The PIN screen says: "Pick a new PIN, not one you use elsewhere. The organizer can see it."
+- The PIN setup screen says: "Pick a PIN for your profile."
 - Guest PINs are stored encrypted. 5 wrong tries lock a name for 10 minutes.
 - Dorian is the only admin, with a 6-digit admin PIN stored hashed.
 - Every admin action is checked on the server.
