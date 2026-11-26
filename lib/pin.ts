@@ -40,17 +40,18 @@ export function guestPinMatches(stored: string, pin: string, key: Buffer): boole
 }
 
 // Admin PIN: scrypt hash, stored only in Vercel as ADMIN_PIN_HASH.
-// Format: scrypt$N$r$p$<salt>$<hash>, salt and hash base64.
+// Format: scrypt:N:r:p:<salt>:<hash>, salt and hash base64.
+// ':' not '$': Next.js expands $NAME inside .env files, which would corrupt a '$'-separated hash.
 const SCRYPT = { N: 2 ** 15, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
 export async function hashAdminPin(pin: string): Promise<string> {
   const salt = randomBytes(16);
   const hash = await scryptAsync(pin, salt, 32, SCRYPT);
-  return ['scrypt', SCRYPT.N, SCRYPT.r, SCRYPT.p, salt.toString('base64'), hash.toString('base64')].join('$');
+  return ['scrypt', SCRYPT.N, SCRYPT.r, SCRYPT.p, salt.toString('base64'), hash.toString('base64')].join(':');
 }
 
 export async function adminPinMatches(stored: string, pin: string): Promise<boolean> {
-  const [kind, n, r, p, salt, hash] = stored.split('$');
+  const [kind, n, r, p, salt, hash] = stored.split(':');
   if (kind !== 'scrypt' || !salt || !hash) throw new Error('ADMIN_PIN_HASH has an unknown format');
   const expected = Buffer.from(hash, 'base64');
   const actual = await scryptAsync(pin, Buffer.from(salt, 'base64'), expected.length, {

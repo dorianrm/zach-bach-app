@@ -55,7 +55,7 @@ describe('guest PIN encryption', () => {
 describe('admin PIN hash', () => {
   it('matches only the right PIN', async () => {
     const stored = await hashAdminPin('482913');
-    expect(stored.startsWith('scrypt$')).toBe(true);
+    expect(stored.startsWith('scrypt:')).toBe(true);
     expect(await adminPinMatches(stored, '482913')).toBe(true);
     expect(await adminPinMatches(stored, '482914')).toBe(false);
   });
