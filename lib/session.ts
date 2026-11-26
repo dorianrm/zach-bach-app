@@ -12,7 +12,11 @@ const DAY = 24 * 60 * 60;
 export const SESSION_TTL = 30 * DAY;
 export const ADMIN_TTL = 12 * 60 * 60;
 
-export type Session = { guestId: string; adminUntil: number | null }; // adminUntil: epoch seconds
+export type Session = {
+  guestId: string;
+  pinVersion: string; // pinFingerprint() of the guest's PIN at sign-in. See requireGuest().
+  adminUntil: number | null; // epoch seconds
+};
 
 export function parseSecret(base64: string | undefined): Uint8Array {
   const secret = Buffer.from(base64 ?? '', 'base64');
@@ -31,7 +35,7 @@ export const cookieOptions = (maxAge: number) => ({
 const ALG = 'HS256';
 
 export async function signSession(session: Session, secret: Uint8Array): Promise<string> {
-  return new SignJWT({ typ: 'session', adm: session.adminUntil })
+  return new SignJWT({ typ: 'session', pv: session.pinVersion, adm: session.adminUntil })
     .setProtectedHeader({ alg: ALG })
     .setSubject(session.guestId)
     .setIssuedAt()
@@ -44,8 +48,12 @@ export async function verifySession(token: string | undefined, secret: Uint8Arra
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret, { algorithms: [ALG] });
-    if (payload.typ !== 'session' || typeof payload.sub !== 'string') return null;
-    return { guestId: payload.sub, adminUntil: typeof payload.adm === 'number' ? payload.adm : null };
+    if (payload.typ !== 'session' || typeof payload.sub !== 'string' || typeof payload.pv !== 'string') return null;
+    return {
+      guestId: payload.sub,
+      pinVersion: payload.pv,
+      adminUntil: typeof payload.adm === 'number' ? payload.adm : null,
+    };
   } catch {
     return null;
   }

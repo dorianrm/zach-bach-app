@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { lockedMessage, requireAdmin, requireGuest, sessionSecret } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { adminPinMatches, isAdminPin } from '@/lib/pin';
+import { adminPinMatches, isAdminPin, pinFingerprint } from '@/lib/pin';
 import { ADMIN_TTL, cookieOptions, SESSION_COOKIE, SESSION_TTL, signSession } from '@/lib/session';
 
 export type AdminLoginState = { error?: string };
@@ -19,7 +19,7 @@ export async function adminLogin(_prev: AdminLoginState, form: FormData): Promis
   const pin = String(form.get('pin') ?? '');
   if (!isAdminPin(pin)) return { error: 'The admin PIN is 6 digits.' };
 
-  const { data: row, error } = await db().from('guests').select('failed_attempts, locked_until').eq('id', guest.id).single();
+  const { data: row, error } = await db().from('guests').select('failed_attempts, locked_until, pin_enc').eq('id', guest.id).single();
   if (error) throw error;
   const locked = lockedMessage(row.locked_until);
   if (locked) return { error: locked };
@@ -34,7 +34,11 @@ export async function adminLogin(_prev: AdminLoginState, form: FormData): Promis
   if (row.failed_attempts > 0) await db().from('guests').update({ failed_attempts: 0 }).eq('id', guest.id);
 
   const adminUntil = Math.floor(Date.now() / 1000) + ADMIN_TTL;
-  const token = await signSession({ guestId: guest.id, adminUntil }, sessionSecret());
+  // requireGuest() passed, so pin_enc is set and matches the current session.
+  const token = await signSession(
+    { guestId: guest.id, pinVersion: pinFingerprint(row.pin_enc), adminUntil },
+    sessionSecret(),
+  );
   (await cookies()).set(SESSION_COOKIE, token, cookieOptions(SESSION_TTL));
   redirect('/admin');
 }

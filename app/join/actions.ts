@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { hasEventCookie, lockedMessage, pinKey, safeNext, sessionSecret } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { encryptPin, guestPinMatches, isGuestPin } from '@/lib/pin';
+import { encryptPin, guestPinMatches, isGuestPin, pinFingerprint } from '@/lib/pin';
 import { cookieOptions, SESSION_COOKIE, SESSION_TTL, signSession } from '@/lib/session';
 
 export type JoinState = { error?: string };
@@ -33,12 +33,14 @@ export async function joinAsGuest(_prev: JoinState, form: FormData): Promise<Joi
   const locked = lockedMessage(guest.locked_until);
   if (locked) return { error: locked };
 
+  let stored: string = guest.pin_enc;
   if (guest.pin_enc === null) {
     if (pin !== String(form.get('confirm') ?? '')) return { error: 'The two PINs do not match.' };
+    stored = encryptPin(pin, pinKey());
     // Only if still unset, so two people picking the same new name cannot both claim it.
     const { data: claimed, error: setError } = await db()
       .from('guests')
-      .update({ pin_enc: encryptPin(pin, pinKey()), failed_attempts: 0, locked_until: null })
+      .update({ pin_enc: stored, failed_attempts: 0, locked_until: null })
       .eq('id', guestId)
       .is('pin_enc', null)
       .select('id');
@@ -52,7 +54,7 @@ export async function joinAsGuest(_prev: JoinState, form: FormData): Promise<Joi
     await db().from('guests').update({ failed_attempts: 0 }).eq('id', guestId);
   }
 
-  const token = await signSession({ guestId, adminUntil: null }, sessionSecret());
+  const token = await signSession({ guestId, pinVersion: pinFingerprint(stored), adminUntil: null }, sessionSecret());
   (await cookies()).set(SESSION_COOKIE, token, cookieOptions(SESSION_TTL));
   redirect(next);
 }

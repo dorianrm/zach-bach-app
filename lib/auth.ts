@@ -2,7 +2,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { db } from './db';
-import { parseKey } from './pin';
+import { parseKey, pinFingerprint } from './pin';
 import { EVENT_COOKIE, isAdmin, parseSecret, SESSION_COOKIE, verifyEvent, verifySession, type Session } from './session';
 
 // Env readers. They throw at request time if a value is missing, so a bad deploy fails loudly.
@@ -25,20 +25,24 @@ export async function getSession(): Promise<Session | null> {
 
 export type Guest = { id: string; name: string; teamId: string | null; isAdmin: boolean; playsBingo: boolean };
 
-// For server actions and pages that need a guest. Sends anyone else to /join.
-// The guest is re-read from the database, so a guest removed from the list loses access.
-export async function requireGuest(next = '/'): Promise<Guest> {
+// The signed-in guest, or null. The session must match the database: the guest still exists
+// and still has the PIN they signed in with. An admin reset (or a new PIN) signs them out.
+export async function currentGuest(): Promise<Guest | null> {
   const session = await getSession();
-  if (session) {
-    const { data } = await db()
-      .from('guests')
-      .select('id, name, team_id, is_admin, plays_bingo')
-      .eq('id', session.guestId)
-      .maybeSingle();
-    if (data) {
-      return { id: data.id, name: data.name, teamId: data.team_id, isAdmin: data.is_admin, playsBingo: data.plays_bingo };
-    }
-  }
+  if (!session) return null;
+  const { data } = await db()
+    .from('guests')
+    .select('id, name, team_id, is_admin, plays_bingo, pin_enc')
+    .eq('id', session.guestId)
+    .maybeSingle();
+  if (!data?.pin_enc || pinFingerprint(data.pin_enc) !== session.pinVersion) return null;
+  return { id: data.id, name: data.name, teamId: data.team_id, isAdmin: data.is_admin, playsBingo: data.plays_bingo };
+}
+
+// For server actions and pages that need a guest. Sends anyone else to /join.
+export async function requireGuest(next = '/'): Promise<Guest> {
+  const guest = await currentGuest();
+  if (guest) return guest;
   redirect(`/join?next=${encodeURIComponent(next)}`);
 }
 
@@ -53,8 +57,8 @@ export function safeNext(value: unknown): string {
 // is inside the 12-hour window opened by the admin PIN. Anyone else goes to /admin.
 export async function requireAdmin(): Promise<Guest> {
   if (isAdmin(await getSession())) {
-    const guest = await requireGuest('/admin');
-    if (guest.isAdmin) return guest;
+    const guest = await currentGuest();
+    if (guest?.isAdmin) return guest;
   }
   redirect('/admin');
 }

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { PageShell } from '@/components/PageShell';
-import { getSession, safeNext } from '@/lib/auth';
+import { currentGuest, safeNext } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { JoinForm } from './JoinForm';
 
@@ -19,15 +19,14 @@ export default function JoinPage({ searchParams }: PageProps<'/join'>) {
 
 async function JoinContent({ searchParams }: Pick<PageProps<'/join'>, 'searchParams'>) {
   const next = safeNext((await searchParams).next);
-  const [session, { data, error }] = await Promise.all([
-    getSession(),
+  const [me, { data, error }] = await Promise.all([
+    currentGuest(),
     db().from('guests').select('id, name, pin_enc').order('name'),
   ]);
   if (error) throw error;
 
   // Only whether a PIN exists reaches the browser, never the PIN itself.
   const guests = (data ?? []).map((g) => ({ id: g.id as string, name: g.name as string, hasPin: g.pin_enc !== null }));
-  const me = session && guests.find((g) => g.id === session.guestId);
 
   return (
     <>

@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import { PageShell } from '@/components/PageShell';
-import { getSession } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { currentGuest } from '@/lib/auth';
 
 const linkClass = 'flex min-h-14 items-center rounded-xl bg-card px-[18px] text-base font-semibold text-link';
 
@@ -20,10 +19,7 @@ export default function MorePage() {
 }
 
 async function MoreLinks() {
-  const session = await getSession();
-  const { data: me } = session
-    ? await db().from('guests').select('name, is_admin').eq('id', session.guestId).maybeSingle()
-    : { data: null };
+  const me = await currentGuest();
 
   return (
     <>
@@ -43,7 +39,7 @@ async function MoreLinks() {
           </a>
         </li>
         {/* Only the organizer sees the admin link. /admin checks again on the server. */}
-        {me?.is_admin && (
+        {me?.isAdmin && (
           <li>
             <a href="/admin" className={linkClass}>
               Admin

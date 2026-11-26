@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 
 const scryptAsync = promisify(scrypt) as (pin: string, salt: Buffer, len: number, opts: object) => Promise<Buffer>;
@@ -29,6 +29,12 @@ export function decryptPin(stored: string, key: Buffer): string {
   const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64url'));
   decipher.setAuthTag(Buffer.from(tag, 'base64url'));
   return Buffer.concat([decipher.update(Buffer.from(ciphertext, 'base64url')), decipher.final()]).toString('utf8');
+}
+
+// Short digest of the stored (encrypted) PIN, kept in the session cookie.
+// A reset or a new PIN changes it, which signs out every session made with the old PIN.
+export function pinFingerprint(stored: string): string {
+  return createHash('sha256').update(stored).digest('base64url').slice(0, 16);
 }
 
 function safeEqual(a: Buffer, b: Buffer): boolean {

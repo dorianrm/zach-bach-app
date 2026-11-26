@@ -9,6 +9,7 @@ import {
   isAdminPin,
   isGuestPin,
   parseKey,
+  pinFingerprint,
 } from './pin';
 
 const key = randomBytes(32);
@@ -62,5 +63,18 @@ describe('admin PIN hash', () => {
 
   it('salts each hash', async () => {
     expect(await hashAdminPin('482913')).not.toBe(await hashAdminPin('482913'));
+  });
+});
+
+describe('pinFingerprint', () => {
+  it('is stable for the same stored PIN', () => {
+    const stored = encryptPin('0420', key);
+    expect(pinFingerprint(stored)).toBe(pinFingerprint(stored));
+    expect(pinFingerprint(stored)).toHaveLength(16);
+  });
+
+  it('changes when the PIN is set again, even to the same digits', () => {
+    // A reset then the same PIN still signs out old sessions: each encryption uses a new IV.
+    expect(pinFingerprint(encryptPin('0420', key))).not.toBe(pinFingerprint(encryptPin('0420', key)));
   });
 });
