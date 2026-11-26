@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Design tokens. Locked in docs/implementation.md (Design). Pages use these names only. */
+@theme {
+  /* Drop Tailwind's default palette so only the tokens below exist. */
+  --color-*: initial;
+
+  --color-hero: #2d4f9e;
+  --color-hero-text: #ffffff;
+  --color-hero-muted: #dbe5ff;
+  --color-bg: #1b2230;
+  --color-card: #252e40;
+  --color-bar: #151b27;
+  --color-line: #34405a;
+  --color-text: #f4f6fa;
+  --color-body: #d5dbe5;
+  --color-muted: #a9b3c2;
+  --color-link: #7aa5ff;
+  --color-highlight: #ffd84d;
+  --color-on-highlight: #14161a;
+}
+
+/* Font variables come from next/font on <html>, so they must stay inline. */
+@theme inline {
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
