@@ -6,7 +6,7 @@ import { AdminLoginForm } from './AdminLoginForm';
 
 export default function AdminPage() {
   return (
-    <PageShell>
+    <PageShell active="more">
       <section className="flex flex-col gap-4">
         <h2 className="text-[13px] font-semibold uppercase tracking-[0.16em] text-highlight">Admin</h2>
         <Suspense fallback={<p className="text-[15px] text-muted">Loading…</p>}>

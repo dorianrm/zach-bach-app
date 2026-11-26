@@ -7,7 +7,7 @@ import { resetPin } from '../actions';
 
 export default function PinsPage() {
   return (
-    <PageShell>
+    <PageShell active="more">
       <section className="flex flex-col gap-4">
         <div className="flex items-baseline justify-between">
           <h2 className="text-[13px] font-semibold uppercase tracking-[0.16em] text-highlight">Guest PINs</h2>

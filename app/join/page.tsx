@@ -6,7 +6,7 @@ import { JoinForm } from './JoinForm';
 
 export default function JoinPage({ searchParams }: PageProps<'/join'>) {
   return (
-    <PageShell>
+    <PageShell active="more">
       <section className="flex flex-col gap-4">
         <h2 className="text-[13px] font-semibold uppercase tracking-[0.16em] text-highlight">Who are you?</h2>
         <Suspense fallback={<p className="text-[15px] text-muted">Loading the guest list…</p>}>
