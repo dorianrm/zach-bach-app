@@ -52,6 +52,7 @@ app/
   (guest)/         itinerary, crawl, bingo, photos
   admin/           admin login and controls     (T2+)
   api/             state, calendar.ics, health
+components/        base components from the Design section
 content/           files only Dorian edits: itinerary, crawl, tiles, guests
 lib/               db, session, pin, time helpers
 supabase/
@@ -179,6 +180,9 @@ type Card = {
   title: string;
   start?: string;      // '2026-12-18T19:00', Pacific. Omit for TBD.
   end?: string;
+  endApprox?: boolean; // shows the end as '~1:00 AM'
+  timeHint?: string;   // shown under 'TBD', e.g. 'afternoon'
+  label?: string;      // highlighted next to the number, e.g. 'Final round'
   place?: string;
   address?: string;    // map link is built from this
   description?: string;
