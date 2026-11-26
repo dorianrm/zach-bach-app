@@ -55,6 +55,7 @@ app/
 components/        base components from the Design section
 content/           files only Dorian edits: itinerary, crawl, tiles, guests
 lib/               db, session, pin, time helpers
+scripts/           one-off tools, e.g. hash-admin-pin
 supabase/
   migrations/      one migration per thread that adds schema
   seed.ts          loads content/ into the database

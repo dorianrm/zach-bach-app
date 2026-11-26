@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "seed": "node --env-file=.env.local supabase/seed.ts"
+    "seed": "node --env-file=.env.local supabase/seed.ts",
+    "hash-admin-pin": "node scripts/hash-admin-pin.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
