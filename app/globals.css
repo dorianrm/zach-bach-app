@@ -34,3 +34,8 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
 }
+
+/* An open sheet (modal <dialog>) stops the page behind it from scrolling. */
+body:has(dialog[open]) {
+  overflow: hidden;
+}

@@ -170,7 +170,7 @@ If missed: send the itinerary as a group chat message.
 - `GET /api/health`: reads one `settings` row and returns ok
 - Daily Vercel cron on `/api/health`. A free Supabase project pauses after 1 week without traffic, so this keeps it awake until Dec 20.
 - `content/itinerary.ts` and the `/` page
-- `GET /api/calendar.ics`
+- `GET /api/calendar.ics`, with `?events=` to keep only picked cards (by tag)
 - Env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 
 **Itinerary content shape**
@@ -205,6 +205,7 @@ type Card = {
 - "Last updated": a `lastUpdated` constant in `content/itinerary.ts`. Bump it on every edit.
 - Venmo link at the top: `https://venmo.com/u/<handle>`.
 - Calendar file: every card with a start time. TBD cards are left out.
+- Add to calendar: one button opens a sheet. The guest ticks the events they attend, then picks a calendar. Apple Calendar: one file holds every ticked event. Google Calendar: a Google link holds one event, so the button opens the ticked events one at a time ("1 of 2").
 - The crawl card lists no stops. The crawl hub owns them (T5).
 - No login in this thread. Until T2, anyone with the link can see the page. The risk is low: times and addresses only.
 

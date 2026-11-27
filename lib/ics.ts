@@ -1,5 +1,5 @@
 import type { Card } from '../content/itinerary';
-import { pacificToUtc } from './time';
+import { pacificToUtc, TIME_ZONE } from './time';
 
 // RFC 5545 text escaping.
 function escapeText(value: string): string {
@@ -33,15 +33,29 @@ function utcStamp(ms: number): string {
   return new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
 
+// Shared by the calendar file and the Google Calendar links.
+function details(card: Card): { description: string; location: string } {
+  return {
+    description: [card.description, card.arriveEarly, card.gettingThere, card.bring, ...(card.notes ?? [])]
+      .filter(Boolean)
+      .join('\n'),
+    location: [card.place, card.address].filter(Boolean).join(', '),
+  };
+}
+
+// ?events=Dinner,Crawl keeps only those cards (by tag). Null (no ?events) keeps every card.
+export function pickCards(cards: Card[], events: string | null): Card[] {
+  if (events === null) return cards;
+  const tags = events.split(',');
+  return cards.filter((card) => tags.includes(card.tag));
+}
+
 // Every card with a start time. TBD cards are left out.
 export function buildCalendar(cards: Card[], lastUpdated: string): string {
   const stamp = utcStamp(pacificToUtc(lastUpdated));
   const events = cards.flatMap((card) => {
     if (!card.start) return [];
-    const description = [card.description, card.arriveEarly, card.gettingThere, card.bring, ...(card.notes ?? [])]
-      .filter(Boolean)
-      .join('\n');
-    const location = [card.place, card.address].filter(Boolean).join(', ');
+    const { description, location } = details(card);
     return [
       'BEGIN:VEVENT',
       `UID:${card.start}-${card.tag.toLowerCase()}@zach-attack`,
@@ -66,4 +80,24 @@ export function buildCalendar(cards: Card[], lastUpdated: string): string {
     'END:VCALENDAR',
   ];
   return lines.map(fold).join('\r\n') + '\r\n';
+}
+
+const HOUR = 60 * 60 * 1000;
+
+// Google's "add event" page, filled in from one card. A link holds only one event.
+// Null for a TBD card. A card with no end gets one hour.
+export function googleCalendarUrl(card: Card): string | null {
+  if (!card.start) return null;
+  const start = pacificToUtc(card.start);
+  const end = card.end ? pacificToUtc(card.end) : start + HOUR;
+  const { description, location } = details(card);
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: card.title,
+    dates: `${utcStamp(start)}/${utcStamp(end)}`,
+    ctz: TIME_ZONE,
+  });
+  if (description) params.set('details', description);
+  if (location) params.set('location', location);
+  return `https://calendar.google.com/calendar/render?${params}`;
 }
