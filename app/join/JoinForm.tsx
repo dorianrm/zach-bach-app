@@ -42,36 +42,39 @@ export function JoinForm({ guests, next }: { guests: Option[]; next: string }) {
         <p className="text-[15px] leading-normal text-body">Pick a PIN for your profile.</p>
       )}
 
-      <label className="flex flex-col gap-2 text-sm text-body">
-        {settingUp ? 'New 4-digit PIN' : 'Your 4-digit PIN'}
-        <input
-          name="pin"
-          type="password"
-          inputMode="numeric"
-          pattern="\d{4}"
-          maxLength={4}
-          autoComplete="off"
-          required
-          autoFocus
-          className={pinInput}
-        />
-      </label>
-
-      {settingUp && (
-        <label className="flex flex-col gap-2 text-sm text-body">
-          Type it again
+      {/* Side by side when setting up, so the submit button fits above the tab bar on a phone. */}
+      <div className={settingUp ? 'grid grid-cols-2 gap-3' : 'flex flex-col'}>
+        <label className="flex min-w-0 flex-col gap-2 text-sm text-body">
+          {settingUp ? 'New 4-digit PIN' : 'Your 4-digit PIN'}
           <input
-            name="confirm"
+            name="pin"
             type="password"
             inputMode="numeric"
             pattern="\d{4}"
             maxLength={4}
             autoComplete="off"
             required
+            autoFocus
             className={pinInput}
           />
         </label>
-      )}
+
+        {settingUp && (
+          <label className="flex min-w-0 flex-col gap-2 text-sm text-body">
+            Type it again
+            <input
+              name="confirm"
+              type="password"
+              inputMode="numeric"
+              pattern="\d{4}"
+              maxLength={4}
+              autoComplete="off"
+              required
+              className={pinInput}
+            />
+          </label>
+        )}
+      </div>
 
       <p aria-live="polite" className="min-h-5 text-sm font-semibold text-highlight">
         {state.error}
