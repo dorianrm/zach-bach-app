@@ -25,7 +25,12 @@ export default function PinsPage() {
 
 async function PinList() {
   await requireAdmin();
-  const { data, error } = await db().from('guests').select('id, name, pin_enc, locked_until').order('name');
+  // The organizer signs in with the admin PIN, which lives in Vercel, so the row is left out.
+  const { data, error } = await db()
+    .from('guests')
+    .select('id, name, pin_enc, locked_until')
+    .eq('is_admin', false)
+    .order('name');
   if (error) throw error;
   const key = pinKey();
 

@@ -15,9 +15,14 @@ export async function join(page: Page, name: string, pin: string, opts: { setup?
     await page.getByLabel('New 4-digit PIN').fill(pin);
     await page.getByLabel('Type it again').fill(opts.confirm ?? pin);
   } else {
-    await page.getByLabel('Your 4-digit PIN').fill(pin);
+    await page.getByLabel('Your PIN').fill(pin);
   }
   await submitAction(page, opts.setup ? 'Set PIN' : 'Join');
+}
+
+// The organizer uses the same form as any guest, with the 6-digit admin PIN.
+export async function joinAsOrganizer(page: Page, pin: string) {
+  await join(page, 'Organizer', pin);
 }
 
 // Clicks a form button and waits for the server action's POST to finish.

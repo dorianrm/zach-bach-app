@@ -52,11 +52,17 @@ export function testDb(): { url: string; key: string } {
 }
 
 // Same format as lib/pin.ts hashAdminPin(), made synchronously for the config file.
+// Fixed salt, so tests can sign their own session cookies for the server under test.
 function hashAdminPin(pin: string): string {
-  const salt = randomBytes(16);
+  const salt = Buffer.alloc(16, 7);
   const hash = scryptSync(pin, salt, 32, { N: 2 ** 15, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
   return ['scrypt', 2 ** 15, 8, 1, salt.toString('base64'), hash.toString('base64')].join(':');
 }
+
+// Test-only values. A fixed session secret lets a test sign a cookie, for example an
+// organizer session whose 12-hour admin window has already passed.
+export const SESSION_SECRET = Buffer.alloc(32, 1).toString('base64');
+export const ADMIN_PIN_HASH = hashAdminPin(ADMIN_PIN);
 
 // Env for the server under test. Process env wins over .env.local in Next.js,
 // so these values replace the real ones for this server only.
@@ -66,9 +72,9 @@ export function serverEnv(): Record<string, string> {
     SUPABASE_URL: url,
     SUPABASE_SERVICE_ROLE_KEY: key,
     EVENT_CODE,
-    SESSION_SECRET: randomBytes(32).toString('base64'),
+    SESSION_SECRET,
     PIN_ENCRYPTION_KEY: randomBytes(32).toString('base64'),
-    ADMIN_PIN_HASH: hashAdminPin(ADMIN_PIN),
+    ADMIN_PIN_HASH,
     E2E_INSECURE_COOKIES: '1',
   };
 }

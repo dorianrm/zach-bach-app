@@ -45,13 +45,15 @@ export function JoinForm({ guests, next }: { guests: Option[]; next: string }) {
       {/* Side by side when setting up, so the submit button fits above the tab bar on a phone. */}
       <div className={settingUp ? 'grid grid-cols-2 gap-3' : 'flex flex-col'}>
         <label className="flex min-w-0 flex-col gap-2 text-sm text-body">
-          {settingUp ? 'New 4-digit PIN' : 'Your 4-digit PIN'}
+          {settingUp ? 'New 4-digit PIN' : 'Your PIN'}
           <input
             name="pin"
             type="password"
             inputMode="numeric"
-            pattern="\d{4}"
-            maxLength={4}
+            // Entry takes 4 to 6 digits for every name, so the organizer's 6-digit PIN fits
+            // without the form looking different.
+            pattern={settingUp ? '\\d{4}' : '\\d{4,6}'}
+            maxLength={settingUp ? 4 : 6}
             autoComplete="off"
             required
             autoFocus

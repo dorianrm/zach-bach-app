@@ -20,7 +20,13 @@ export async function loadFixtures() {
 export async function resetPins() {
   const { error } = await db
     .from('guests')
-    .update({ pin_enc: null, failed_attempts: 0, locked_until: null })
+    .update({ pin_enc: null, failed_attempts: 0, locked_until: null, admin_failed_attempts: 0, admin_locked_until: null })
     .not('id', 'is', null);
   check('reset pins', error);
+}
+
+export async function guestId(name: string): Promise<string> {
+  const { data, error } = await db.from('guests').select('id').eq('name', name).single();
+  check('guest id', error);
+  return data!.id;
 }

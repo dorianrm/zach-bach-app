@@ -8,6 +8,11 @@ import { EVENT_COOKIE, isAdmin, parseSecret, SESSION_COOKIE, verifyEvent, verify
 // Env readers. They throw at request time if a value is missing, so a bad deploy fails loudly.
 export const sessionSecret = () => parseSecret(process.env.SESSION_SECRET);
 export const pinKey = () => parseKey(process.env.PIN_ENCRYPTION_KEY);
+export function adminPinHash(): string {
+  const hash = process.env.ADMIN_PIN_HASH;
+  if (!hash) throw new Error('ADMIN_PIN_HASH must be set');
+  return hash;
+}
 export function eventCode(): string {
   const code = process.env.EVENT_CODE;
   if (!code) throw new Error('EVENT_CODE must be set');
@@ -27,6 +32,7 @@ export type Guest = { id: string; name: string; teamId: string | null; isAdmin: 
 
 // The signed-in guest, or null. The session must match the database: the guest still exists
 // and still has the PIN they signed in with. An admin reset (or a new PIN) signs them out.
+// The organizer signs in with the admin PIN, so a new ADMIN_PIN_HASH signs them out everywhere.
 export async function currentGuest(): Promise<Guest | null> {
   const session = await getSession();
   if (!session) return null;
@@ -35,7 +41,9 @@ export async function currentGuest(): Promise<Guest | null> {
     .select('id, name, team_id, is_admin, plays_bingo, pin_enc')
     .eq('id', session.guestId)
     .maybeSingle();
-  if (!data?.pin_enc || pinFingerprint(data.pin_enc) !== session.pinVersion) return null;
+  if (!data) return null;
+  const pin = data.is_admin ? adminPinHash() : data.pin_enc;
+  if (!pin || pinFingerprint(pin) !== session.pinVersion) return null;
   return { id: data.id, name: data.name, teamId: data.team_id, isAdmin: data.is_admin, playsBingo: data.plays_bingo };
 }
 
@@ -63,7 +71,7 @@ export async function requireAdmin(): Promise<Guest> {
   redirect('/admin');
 }
 
-// Must match the interval in record_pin_failure() (migration 0002).
+// Must match the interval in record_pin_failure() and record_admin_failure() (migration 0003).
 const LOCK_MINUTES = 10;
 
 // Shared by guest and admin PIN checks. Null once the lock has passed.
