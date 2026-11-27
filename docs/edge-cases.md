@@ -65,7 +65,7 @@ A running list of edge cases found while building, and how each one is covered. 
 | `$` in the hash read from `.env` | Hash uses `:` separators, so Next.js does not expand it | Unit (hash format) |
 | Dorian on the Guest PINs page | Not listed | E2E |
 
-## Calendar (PR #3)
+## Calendar
 
 | Edge case | Expected | Status |
 |---|---|---|
