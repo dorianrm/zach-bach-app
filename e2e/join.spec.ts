@@ -67,3 +67,28 @@ test('next= cannot send a guest to another site', async ({ page }) => {
   await submitAction(page, 'Set PIN');
   await expect(page).toHaveURL('/');
 });
+
+test('a signed-in phone can switch only to names that have a PIN', async ({ page, browser }, testInfo) => {
+  const phone2 = await secondPhone(browser, testInfo);
+  await join(phone2, 'Casey', '1111', { setup: true });
+  await phone2.context().close();
+
+  // Tab 1 opens the setup form for Blair before the phone signs in.
+  const tab1 = await page.context().newPage();
+  await tab1.goto('/join');
+  await tab1.getByRole('button', { name: 'Blair', exact: true }).click();
+
+  await join(page, 'Alex', '1234', { setup: true });
+  await page.goto('/join');
+  await expect(page.getByRole('button', { name: 'Casey', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Blair', exact: true })).toHaveCount(0);
+
+  // The server refuses too, not only the list.
+  await tab1.getByLabel('New 4-digit PIN').fill('2468');
+  await tab1.getByLabel('Type it again').fill('2468');
+  await submitAction(tab1, 'Set PIN');
+  await expect(tab1.getByText('Only a phone that is not signed in can set up a new name.')).toBeVisible();
+
+  await join(page, 'Casey', '1111');
+  await expectSignedInAs(page, 'Casey');
+});

@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { adminPinHash, hasEventCookie, lockedMessage, pinKey, safeNext, sessionSecret } from '@/lib/auth';
+import { adminPinHash, currentGuest, hasEventCookie, lockedMessage, pinKey, safeNext, sessionSecret } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { adminPinMatches, encryptPin, guestPinMatches, isAdminPin, isGuestPin, pinFingerprint } from '@/lib/pin';
 import { ADMIN_TTL, cookieOptions, SESSION_COOKIE, SESSION_TTL, signSession } from '@/lib/session';
@@ -45,6 +45,9 @@ export async function joinAsGuest(_prev: JoinState, form: FormData): Promise<Joi
 
   let stored: string = guest.pin_enc;
   if (guest.pin_enc === null) {
+    // A phone signed in as someone cannot claim another name. This stops the easy prank
+    // through Switch guest. A private tab gets around it: Reset fixes a taken name.
+    if (await currentGuest()) return { error: 'Only a phone that is not signed in can set up a new name.' };
     if (!isGuestPin(pin)) return { error: 'Your PIN is 4 digits.' };
     if (pin !== String(form.get('confirm') ?? '')) return { error: 'The two PINs do not match.' };
     stored = encryptPin(pin, pinKey());

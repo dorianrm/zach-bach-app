@@ -249,6 +249,7 @@ If missed: paper passports for the route and challenges, and Zach's tally sheet 
 - 5 wrong tries set `locked_until` to 10 minutes from now. Dorian gets 10 tries.
 - Dorian has two lock counters. Wrong tries at `/join` (anyone with the link) never block the `/admin` re-prompt on a phone already signed in as Dorian. To clear a lock from a phone, run a saved SQL snippet in Supabase.
 - Admin reset clears `pin_enc`, so the guest sets a new PIN.
+- A phone signed in as someone can switch only to names that have a PIN. It cannot claim a new name. A private tab gets around this, so Reset is the fix for a taken name.
 - The admin PIN is never in the database. Only its hash, in Vercel. A new hash signs Dorian out on every device.
 
 **Done when**

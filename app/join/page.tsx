@@ -27,11 +27,10 @@ async function JoinContent({ searchParams }: Pick<PageProps<'/join'>, 'searchPar
 
   // Only whether a PIN exists reaches the browser, never the PIN itself. The organizer
   // always has one (the admin PIN), and nothing else marks that name in the browser.
-  const guests = (data ?? []).map((g) => ({
-    id: g.id as string,
-    name: g.name as string,
-    hasPin: g.is_admin || g.pin_enc !== null,
-  }));
+  // A signed-in phone sees only names that have a PIN, since it cannot claim a new one.
+  const guests = (data ?? [])
+    .map((g) => ({ id: g.id as string, name: g.name as string, hasPin: g.is_admin || g.pin_enc !== null }))
+    .filter((g) => !me || g.hasPin);
 
   return (
     <>
