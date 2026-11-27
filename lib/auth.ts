@@ -63,10 +63,15 @@ export async function requireAdmin(): Promise<Guest> {
   redirect('/admin');
 }
 
+// Must match the interval in record_pin_failure() (migration 0002).
+const LOCK_MINUTES = 10;
+
 // Shared by guest and admin PIN checks. Null once the lock has passed.
+// The database sets locked_until with its own clock. Capping at LOCK_MINUTES hides a few
+// seconds of clock difference with this server, which would otherwise show "11 minutes".
 export function lockedMessage(until: string | null): string | null {
   const ms = until ? new Date(until).getTime() - Date.now() : 0;
   if (ms <= 0) return null;
-  const minutes = Math.ceil(ms / 60_000);
+  const minutes = Math.min(Math.ceil(ms / 60_000), LOCK_MINUTES);
   return `Too many wrong tries. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}, or ask Dorian.`;
 }
