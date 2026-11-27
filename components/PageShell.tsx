@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { TabBar, type Tab } from './TabBar';
 
 type Props = {
-  active: Tab;
+  active?: Tab; // Omit to hide the tab bar (gate and join pages).
   headerAside?: ReactNode; // Bottom row of the header, e.g. updated stamp + Venmo.
   children: ReactNode;
 };
@@ -21,10 +21,14 @@ export function PageShell({ active, headerAside, children }: Props) {
         </div>
       </header>
       {/* Bottom padding clears the fixed tab bar. */}
-      <main className="mx-auto flex max-w-xl flex-col gap-8 px-6 pt-7 pb-[calc(72px+28px+env(safe-area-inset-bottom))]">
+      <main
+        className={`mx-auto flex max-w-xl flex-col gap-8 px-6 pt-7 ${
+          active ? 'pb-[calc(72px+28px+env(safe-area-inset-bottom))]' : 'pb-10'
+        }`}
+      >
         {children}
       </main>
-      <TabBar active={active} />
+      {active && <TabBar active={active} />}
     </>
   );
 }

@@ -55,6 +55,7 @@ app/
 components/        base components from the Design section
 content/           files only Dorian edits: itinerary, crawl, tiles, guests
 lib/               db, session, pin, time helpers
+scripts/           one-off tools, e.g. hash-admin-pin
 supabase/
   migrations/      one migration per thread that adds schema
   seed.ts          loads content/ into the database
@@ -135,7 +136,7 @@ Build these first in T1, then build every page from them.
 | Component | What it is |
 | --- | --- |
 | `PageShell` | Header band, content area, and `TabBar` |
-| `TabBar` | Plan, Crawl, Bingo, Photos. Active tab in `--color-link`. |
+| `TabBar` | Plan, Crawl, Bingo, Photos, More. Active tab in `--color-link`. More holds /join, /admin and future organizer pages. |
 | `DayHeading` | Yellow uppercase section label |
 | `EventCard` | Time column plus body. `now` variant adds the yellow border and a "Now" tag. |
 | `Button` | `primary` (yellow, dark text) and `secondary` (outline in `--color-line`) |
@@ -228,6 +229,7 @@ If missed: paper passports for the route and challenges, and Zach's tally sheet 
 
 - Migration `0002`: `teams` (`id`, `name`, `color`, `sort`) and `guests` (`id`, `name` unique, `team_id`, `pin_enc`, `failed_attempts`, `locked_until`, `is_admin`, `plays_bingo`)
 - `content/guests.ts` and `supabase/seed.ts` for guests and teams. Placeholder names until the real list arrives.
+- Migration `0003`: `admin_failed_attempts` and `admin_locked_until` on `guests`, for the organizer's admin re-prompt
 - `lib/session.ts`, `lib/pin.ts`
 - Middleware: no `event` cookie means an "Ask Dorian for the link" page
 - `/join`, `/admin` login, `/admin/pins`
@@ -236,23 +238,26 @@ If missed: paper passports for the route and challenges, and Zach's tally sheet 
 **Flow**
 
 1. `EVENT_CODE` in the link (`/?c=...`) sets an `event` cookie.
-2. `/join`: the guest picks their name. First time: they set a 4-digit PIN. Later, on any device: they enter it.
-3. A server action checks the PIN, updates `failed_attempts` and `locked_until`, then sets the `session` cookie: `{guestId, admin: false}`, for 30 days.
-4. `/admin`: Dorian enters the 6-digit admin PIN. It is checked against `ADMIN_PIN_HASH`. The session is upgraded to `admin: true` for 12 hours.
+2. `/join`: the guest picks their name. First time: they set a 4-digit PIN. Later, on any device: they enter it. Dorian enters the 6-digit admin PIN instead.
+3. A server action checks the PIN, updates `failed_attempts` and `locked_until`, then sets the `session` cookie for 30 days. For Dorian, the session also opens a 12-hour admin window.
+4. `/admin`: after 12 hours, Dorian enters the admin PIN again on the same phone. It is checked against `ADMIN_PIN_HASH` and opens a new 12-hour window.
 
 **Rules**
 
 - Guest PINs are stored with AES-256-GCM using `PIN_ENCRYPTION_KEY`. Only `/admin/pins` decrypts them.
-- The PIN screen says: "Pick a new PIN, not one you use elsewhere. The organizer can see it."
-- 5 wrong tries set `locked_until` to 10 minutes from now.
+- The PIN setup screen says: "Pick a PIN for your profile."
+- 5 wrong tries set `locked_until` to 10 minutes from now. Dorian gets 10 tries.
+- Dorian has two lock counters. Wrong tries at `/join` (anyone with the link) never block the `/admin` re-prompt on a phone already signed in as Dorian. To clear a lock from a phone, run a saved SQL snippet in Supabase.
 - Admin reset clears `pin_enc`, so the guest sets a new PIN.
-- The admin PIN is never in the database. Only its hash, in Vercel.
+- A phone signed in as someone can switch only to names that have a PIN. It cannot claim a new name. A private tab gets around this, so Reset is the fix for a taken name.
+- The admin PIN is never in the database. Only its hash, in Vercel. A new hash signs Dorian out on every device.
 
 **Done when**
 
 - A guest logs in on a phone, then on a second browser with the same PIN
 - A wrong PIN 5 times locks the name
-- Dorian logs in as admin, views a guest PIN, and resets it
+- Dorian signs in with the admin PIN, views a guest PIN, and resets it
+- 10 wrong tries at `/join` lock Dorian's name, but not the re-prompt on Dorian's signed-in phone
 - A tampered session cookie is rejected (Vitest)
 
 **Thickens later:** T3 shows the guest their team.
