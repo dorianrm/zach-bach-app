@@ -205,7 +205,7 @@ type Card = {
 - "Last updated": a `lastUpdated` constant in `content/itinerary.ts`. Bump it on every edit.
 - Venmo link at the top: `https://venmo.com/u/<handle>`.
 - Calendar file: every card with a start time. TBD cards are left out.
-- Add to calendar: two buttons. Apple Calendar: tick the events you attend, then one file holds them. Google Calendar: one "Add" link per event, since a Google link holds one event.
+- Add to calendar: one button opens a sheet. The guest ticks the events they attend, then picks a calendar. Apple Calendar: one file holds every ticked event. Google Calendar: a Google link holds one event, so the button opens the ticked events one at a time ("1 of 2").
 - The crawl card lists no stops. The crawl hub owns them (T5).
 - No login in this thread. Until T2, anyone with the link can see the page. The risk is low: times and addresses only.
 
