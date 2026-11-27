@@ -1,5 +1,6 @@
 // Edited by Dorian only. After an edit, re-run the seed: npm run seed
-// Placeholder names until the real list arrives.
+// First names only. A shared first name adds the last initial, like 'John C.'
+// Teams are still placeholders: guests get a team when the teams are picked (T3).
 
 export type Team = { id: string; name: string; color: string };
 
@@ -18,9 +19,21 @@ export const teams: Team[] = [
 ];
 
 export const guests: Guest[] = [
-  { name: 'Dorian', team: 'red', isAdmin: true },
   { name: 'Zach', playsBingo: false },
-  { name: 'Test Guest A', team: 'red' },
-  { name: 'Test Guest B', team: 'gray' },
-  { name: 'Test Guest C', team: 'gold' },
+  { name: 'Dorian', isAdmin: true },
+  { name: 'Benjamin' },
+  { name: 'Justus' },
+  { name: 'Drew' },
+  { name: 'John C.' },
+  { name: 'Miguel' },
+  { name: 'Scott' },
+  { name: 'John G.' },
+  { name: 'Chiron' },
+  { name: 'Patrick' },
+  { name: 'Nic' },
+  { name: 'Chris' },
+  { name: 'Alex' },
+  { name: 'Aiden' },
+  { name: 'Cade' },
+  { name: 'Jonathan' },
 ];
