@@ -41,17 +41,20 @@ Rules every thread follows. No schema lives here.
 | Files | Supabase Storage, private bucket | Signed URLs, no public access |
 | Sessions | Signed JWT in an httpOnly cookie (`jose`) | No auth provider needed |
 | Crypto | Node `crypto` | AES-256-GCM for guest PINs, `scrypt` for the admin PIN |
-| Tests | Vitest | Logic that can fail quietly |
+| Tests | Vitest, Playwright | Vitest for logic that can fail quietly. Playwright e2e on iPhone (WebKit) and Android (Chromium) against a test Supabase project |
 | Hosting | Vercel Hobby, deploy on push to `main` | Preview URL for every branch |
 
 ### Repo layout
 
 ```text
 app/
+  gate/            "Ask Dorian for the link"   (T2)
   join/            name picker + PIN            (T2)
+  more/            links to join, admin and organizer pages
   (guest)/         itinerary, crawl, bingo, photos
   admin/           admin login and controls     (T2+)
   api/             state, calendar.ics, health
+proxy.ts           event-code gate on every page
 components/        base components from the Design section
 content/           files only Dorian edits: itinerary, crawl, tiles, guests
 lib/               db, session, pin, time helpers
@@ -59,9 +62,12 @@ scripts/           one-off tools, e.g. hash-admin-pin
 supabase/
   migrations/      one migration per thread that adds schema
   seed.ts          loads content/ into the database
+e2e/               Playwright specs, fixtures, test-only env
 docs/
   tech-spec.md
   implementation.md
+  edge-cases.md    every known edge case and how it is tested
+CLAUDE.md          how to work in this repo (secrets, migrations, tests)
 ```
 
 ### Rules
@@ -269,7 +275,7 @@ If missed: paper passports for the route and challenges, and Zach's tally sheet 
 
 **Adds**
 
-- Migration `0003`: `awards` (`id`, `team_id`, `challenge_id`, `points`, `source`, `note`, `created_at`, `undone_at`). `challenge_id` stays null until T5.
+- Migration `0004`: `awards` (`id`, `team_id`, `challenge_id`, `points`, `source`, `note`, `created_at`, `undone_at`). `challenge_id` stays null until T5.
 - `GET /api/state`: `teamsRevealed`, rosters, and scores
 - Client polling hook, 5 s, paused when the tab is hidden
 - `/crawl` guest page and `/admin/crawl`
@@ -328,7 +334,7 @@ Scores are always computed from `awards`, never stored. Undo and history then wo
 
 **Adds**
 
-- Migration `0004`: `stops` (`id`, `sort`, `name`, `address`, `revealed_at`) and `challenges` (`id`, `stop_id`, `title`, `points`, `kind`). A null `stop_id` means an anytime challenge.
+- Migration `0005`: `stops` (`id`, `sort`, `name`, `address`, `revealed_at`) and `challenges` (`id`, `stop_id`, `title`, `points`, `kind`). A null `stop_id` means an anytime challenge.
 - `content/crawl.ts`: stops, challenges, rules text. Seeded.
 - Server actions:
 
@@ -367,7 +373,7 @@ If missed: printed bingo cards, scored on paper at dessert.
 
 **Adds**
 
-- Migration `0005`: `bingo_cards` (`guest_id` PK, `tile_order` int[24], `marks` bool[25], `place` int unique, `won_at`)
+- Migration `0006`: `bingo_cards` (`guest_id` PK, `tile_order` int[24], `marks` bool[25], `place` int unique, `won_at`)
 - `content/bingo-tiles.ts`: 24 tiles
 - `/bingo` page
 - Server action `toggleMark(position)`
@@ -427,7 +433,7 @@ If missed: a shared Google Photos album link in the group chat.
 **Adds**
 
 - Supabase Storage private bucket `photos`
-- Migration `0006`: `photos` (`id`, `guest_id`, `path`, `thumb_path`, `caption`, `taken_at`, `tag`, `hidden`, `created_at`)
+- Migration `0007`: `photos` (`id`, `guest_id`, `path`, `thumb_path`, `caption`, `taken_at`, `tag`, `hidden`, `created_at`)
 - Client libraries `exifr` and `browser-image-compression`
 - Server actions `createUploadUrls(count)` and `savePhoto(...)`
 - `/photos` page
