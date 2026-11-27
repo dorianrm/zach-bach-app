@@ -31,8 +31,11 @@ describe('session cookie', () => {
 
   it('rejects a changed signature', async () => {
     const token = await signSession({ guestId, pinVersion, adminUntil: null }, secret);
-    const last = token.at(-1) === 'A' ? 'B' : 'A';
-    expect(await verifySession(token.slice(0, -1) + last, secret)).toBeNull();
+    // Change the first signature character. The last one carries 2 unused bits, so a change
+    // there can decode to the same signature.
+    const at = token.lastIndexOf('.') + 1;
+    const swapped = token[at] === 'A' ? 'B' : 'A';
+    expect(await verifySession(token.slice(0, at) + swapped + token.slice(at + 1), secret)).toBeNull();
   });
 
   it('rejects a token signed with another secret', async () => {
