@@ -26,7 +26,9 @@ export function parseSecret(base64: string | undefined): Uint8Array {
 
 export const cookieOptions = (maxAge: number) => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  // E2E_INSECURE_COOKIES is set only by the Playwright test server: WebKit (Safari's engine)
+  // refuses Secure cookies on http://localhost. Never set it in Vercel.
+  secure: process.env.NODE_ENV === 'production' && process.env.E2E_INSECURE_COOKIES !== '1',
   sameSite: 'lax' as const,
   path: '/',
   maxAge,
