@@ -1,8 +1,19 @@
 import { Button } from '@/components/Button';
+import { CalendarPicker, type CalendarEvent } from '@/components/CalendarPicker';
 import { Itinerary } from '@/components/Itinerary';
 import { PageShell } from '@/components/PageShell';
 import { cards, lastUpdated, venmoHandle } from '@/content/itinerary';
-import { formatStamp } from '@/lib/time';
+import { googleCalendarUrl } from '@/lib/ics';
+import { formatClock, formatStamp } from '@/lib/time';
+
+// TBD cards have no time yet, so they cannot go in a calendar.
+const calendarEvents: CalendarEvent[] = cards.flatMap((card) => {
+  const googleUrl = googleCalendarUrl(card);
+  if (!card.start || !googleUrl) return [];
+  const { clock, period } = formatClock(card.start);
+  const day = card.day === 'fri' ? 'Fri' : 'Sat';
+  return [{ tag: card.tag, title: card.title, when: `${day} ${clock} ${period}`, googleUrl }];
+});
 
 export default function PlanPage() {
   return (
@@ -16,9 +27,7 @@ export default function PlanPage() {
       }
     >
       <Itinerary cards={cards} />
-      <Button variant="secondary" href="/api/calendar.ics" className="h-12 w-full">
-        Add weekend to calendar
-      </Button>
+      <CalendarPicker events={calendarEvents} />
     </PageShell>
   );
 }
