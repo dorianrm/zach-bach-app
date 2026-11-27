@@ -22,7 +22,7 @@ export async function join(page: Page, name: string, pin: string, opts: { setup?
 
 // The organizer uses the same form as any guest, with the 6-digit admin PIN.
 export async function joinAsOrganizer(page: Page, pin: string) {
-  await join(page, 'Organizer', pin);
+  await join(page, 'Dorian Raboy', pin);
 }
 
 // Clicks a form button and waits for the server action's POST to finish.

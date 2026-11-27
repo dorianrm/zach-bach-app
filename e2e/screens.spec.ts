@@ -15,10 +15,10 @@ test('phone screenshots', async ({ page }, testInfo) => {
   await shot('plan');
 
   await page.goto('/join');
-  await expect(page.getByRole('button', { name: 'Alex', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Alex Weirth', exact: true })).toBeVisible();
   await shot('join');
 
-  await page.getByRole('button', { name: 'Alex', exact: true }).click();
+  await page.getByRole('button', { name: 'Alex Weirth', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Set PIN' })).toBeVisible();
   await shot('join-setup');
   // The guest must reach Set PIN without scrolling: it has to end above the fixed tab bar.

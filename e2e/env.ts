@@ -18,11 +18,11 @@ export const TEAMS = [
   { id: 'gray', name: 'Gray Squad', color: '#c3cad6', sort: 1 },
 ];
 export const GUESTS = [
-  { name: 'Organizer', team_id: 'red', is_admin: true, plays_bingo: true },
-  { name: 'Alex', team_id: 'red', is_admin: false, plays_bingo: true },
-  { name: 'Blair', team_id: 'gray', is_admin: false, plays_bingo: true },
-  { name: 'Casey', team_id: 'gray', is_admin: false, plays_bingo: true },
-  { name: 'Zach', team_id: null, is_admin: false, plays_bingo: false },
+  { name: 'Dorian Raboy', team_id: 'red', is_admin: true, plays_bingo: true },
+  { name: 'Alex Weirth', team_id: 'red', is_admin: false, plays_bingo: true },
+  { name: 'Benjamin Burton', team_id: 'gray', is_admin: false, plays_bingo: true },
+  { name: 'Chris Acosta', team_id: 'gray', is_admin: false, plays_bingo: true },
+  { name: 'Zach Luis', team_id: null, is_admin: false, plays_bingo: false },
 ];
 
 function readEnvFile(path: string): Record<string, string> {
