@@ -39,7 +39,7 @@ The home page. One card per event, grouped by day.
 - Optional: start and end time (or TBD), place and address, description, getting there, what to wear or bring, cost estimate, arrive-early note, notes list (ID, waivers, shoes)
 - A card shows only the fields that are filled in. New details are added without a design change.
 
-**Page features (MVP):** map link on each address, add to calendar, "happening now" highlight in Pacific time, link preview in the group chat, "last updated" stamp, Venmo link to pay Dorian.
+**Page features (MVP):** map link on each address, add to calendar (Apple or Google, pick the events you attend), "happening now" highlight in Pacific time, link preview in the group chat, "last updated" stamp, Venmo link to pay Dorian.
 
 **Later:** countdown to the next event, offline mode, optional or attendance tags per card.
 
