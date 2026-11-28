@@ -4,10 +4,11 @@ import { useActionState } from 'react';
 import { Button } from '@/components/Button';
 import { adminLogin, type AdminLoginState } from './actions';
 
-export function AdminLoginForm() {
+export function AdminLoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState<AdminLoginState, FormData>(adminLogin, {});
   return (
     <form action={action} className="flex flex-col gap-4 rounded-xl bg-card p-[18px]">
+      <input type="hidden" name="next" value={next} />
       <label className="flex flex-col gap-2 text-sm text-body">
         Admin PIN
         <input

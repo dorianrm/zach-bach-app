@@ -62,13 +62,14 @@ export function safeNext(value: unknown): string {
 }
 
 // For admin pages and actions. Needs both: the guest row has is_admin, and the session
-// is inside the 12-hour window opened by the admin PIN. Anyone else goes to /admin.
-export async function requireAdmin(): Promise<Guest> {
+// is inside the 12-hour window opened by the admin PIN. Anyone else goes to /admin, which
+// asks for the PIN and then returns to `next`.
+export async function requireAdmin(next?: string): Promise<Guest> {
   if (isAdmin(await getSession())) {
     const guest = await currentGuest();
     if (guest?.isAdmin) return guest;
   }
-  redirect('/admin');
+  redirect(next ? `/admin?next=${encodeURIComponent(next)}` : '/admin');
 }
 
 // Must match the interval in record_pin_failure() and record_admin_failure() (migration 0003).

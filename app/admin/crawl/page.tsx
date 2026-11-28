@@ -24,7 +24,7 @@ export default function AdminCrawlPage() {
 }
 
 async function CrawlAdmin() {
-  await requireAdmin();
+  await requireAdmin('/admin/crawl');
   const [revealed, teams] = await Promise.all([teamsRevealed(), loadStandings()]);
 
   return (
