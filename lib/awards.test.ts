@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { awardLabel, awardText, parseBonus } from './awards';
+import { awardLabel, awardText, parseBonus, parsePlacement, topTie } from './awards';
 
 describe('parseBonus', () => {
   it('accepts a squad, whole points and a note', () => {
@@ -36,5 +36,43 @@ describe('award text', () => {
 
   it('reads like the toast', () => {
     expect(awardText(2, 'Red Squad', "Groom's choice")).toBe("+2 Red Squad: Groom's choice");
+  });
+});
+
+describe('parsePlacement', () => {
+  it('keeps the finishing order', () => {
+    expect(parsePlacement(['gold', 'red', 'gray'])).toEqual(['gold', 'red', 'gray']);
+  });
+
+  it('allows a head-to-head with two squads', () => {
+    expect(parsePlacement(['gray', 'red', ''])).toEqual(['gray', 'red']);
+    expect(parsePlacement(['gray', 'red', null])).toEqual(['gray', 'red']);
+  });
+
+  it('needs 1st and 2nd', () => {
+    expect(parsePlacement(['red', '', 'gray'])).toEqual({ error: 'Pick 1st and 2nd.' });
+    expect(parsePlacement([null, null, null])).toEqual({ error: 'Pick 1st and 2nd.' });
+  });
+
+  it('refuses a squad placed twice', () => {
+    expect(parsePlacement(['red', 'red', ''])).toEqual({ error: 'A squad can only place once.' });
+    expect(parsePlacement(['red', 'gray', 'red'])).toEqual({ error: 'A squad can only place once.' });
+  });
+});
+
+describe('topTie', () => {
+  const team = (name: string, total: number) => ({ name, total });
+
+  it('is null with one clear leader', () => {
+    expect(topTie([team('Red', 5), team('Gray', 4), team('Gold', 4)])).toBeNull();
+  });
+
+  it('lists every team tied at the top', () => {
+    expect(topTie([team('Red', 5), team('Gray', 5), team('Gold', 5)])?.map((t) => t.name)).toEqual(['Red', 'Gray', 'Gold']);
+    expect(topTie([team('Red', 5), team('Gray', 5), team('Gold', 1)])?.map((t) => t.name)).toEqual(['Red', 'Gray']);
+  });
+
+  it('counts 0 to 0 as a tie', () => {
+    expect(topTie([team('Red', 0), team('Gray', 0)])).not.toBeNull();
   });
 });

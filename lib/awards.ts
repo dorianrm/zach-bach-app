@@ -36,3 +36,20 @@ export function awardText(points: number, teamName: string, label: string): stri
   return `${points >= 0 ? '+' : ''}${points} ${teamName}: ${label}`;
 }
 
+
+// Head-to-head result (T5): 1st and 2nd are needed, 3rd only when a third squad played.
+// Returns team ids in finishing order, all different.
+export function parsePlacement(places: unknown[]): string[] | { error: string } {
+  const [first, second, third] = places.map((p) => (typeof p === 'string' ? p : ''));
+  if (!first || !second) return { error: 'Pick 1st and 2nd.' };
+  const order = third ? [first, second, third] : [first, second];
+  if (new Set(order).size !== order.length) return { error: 'A squad can only place once.' };
+  return order;
+}
+
+// Final (T5) needs one clear winner. Standings are sorted, highest total first.
+// Returns the tied teams when the top two totals match, else null.
+export function topTie<T extends { name: string; total: number }>(standings: T[]): T[] | null {
+  if (standings.length < 2 || standings[0].total !== standings[1].total) return null;
+  return standings.filter((s) => s.total === standings[0].total);
+}
