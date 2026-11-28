@@ -31,3 +31,16 @@ export function cardSquares(tileOrder: number[], tiles: string[]): (string | nul
 export function isMarkable(position: unknown): position is number {
   return Number.isInteger(position) && (position as number) >= 0 && (position as number) < SIZE && position !== FREE;
 }
+
+// The 12 ways to win: 5 rows, 5 columns, 2 diagonals.
+const range = Array.from({ length: 5 }, (_, i) => i);
+export const LINES: number[][] = [
+  ...range.map((r) => range.map((c) => r * 5 + c)),
+  ...range.map((c) => range.map((r) => r * 5 + c)),
+  range.map((i) => i * 6),
+  range.map((i) => (i + 1) * 4),
+];
+
+export function hasLine(marks: boolean[]): boolean {
+  return LINES.some((line) => line.every((p) => marks[p]));
+}
