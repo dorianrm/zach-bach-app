@@ -1,6 +1,6 @@
 import 'server-only';
 import { db } from './db';
-import { emptyMarks, shuffleTiles } from './bingo';
+import { emptyMarks, hasLine, shuffleTiles } from './bingo';
 
 export type Card = { tileOrder: number[]; marks: boolean[]; place: number | null };
 
@@ -29,4 +29,30 @@ export async function loadBingoWinners(): Promise<BingoWinner[]> {
   // bingo_cards.guest_id points at one guest, so Supabase returns an object. The untyped
   // client cannot know that and guesses an array.
   return data.map((row) => ({ place: row.place, name: (row.guests as unknown as { name: string }).name }));
+}
+
+export type BoardRow = { guestId: string; name: string; marked: number | null; line: boolean; place: number | null };
+
+// Every player for the organizer: tiles marked (null before the first visit), line, place.
+// Players with a place come first, in place order, then by name.
+export async function loadBingoBoard(): Promise<BoardRow[]> {
+  const [guests, cards] = await Promise.all([
+    db().from('guests').select('id, name').eq('plays_bingo', true).order('name'),
+    db().from('bingo_cards').select('guest_id, marks, place'),
+  ]);
+  for (const r of [guests, cards]) if (r.error) throw r.error;
+  const byGuest = new Map((cards.data ?? []).map((c) => [c.guest_id, c]));
+  return (guests.data ?? [])
+    .map((g) => {
+      const card = byGuest.get(g.id);
+      return {
+        guestId: g.id,
+        name: g.name,
+        // The free center does not count.
+        marked: card ? card.marks.filter(Boolean).length - 1 : null,
+        line: card ? hasLine(card.marks) : false,
+        place: card?.place ?? null,
+      };
+    })
+    .sort((a, b) => (a.place ?? 9) - (b.place ?? 9));
 }
