@@ -51,7 +51,7 @@ One shared album, for photos taken during the weekend only. Photos only, no vide
 
 **Decisions**
 
-- Uploads open Fri Dec 18 at 6:00 PM and close Sun Dec 20 at noon.
+- Uploads open Fri Dec 18 at 6:00 PM and close at the end of Sun Dec 27, so guests have a week to upload.
 - Every guest sees all photos right away. Dorian hides anything that should not be there.
 - Zach can see the gallery at any time.
 - Upload prompt: "Anything from this weekend." No upload cap.

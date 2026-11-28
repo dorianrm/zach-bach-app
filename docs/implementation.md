@@ -34,7 +34,7 @@ Update this table when a thread's PR merges.
 | T5 Stops, placements, bonus, final | Not started | |
 | T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
 | T7 Win + head start | Not started | |
-| T8 Upload + view | Not started | |
+| T8 Upload + view | Live. Uploads open Dec 18 to 27 (Photos admin switch). | #10 |
 | T9 Tags, filter, delete, hide | Not started | |
 | T10 Testing and dry run | Not started | |
 
@@ -110,6 +110,7 @@ CLAUDE.md          how to work in this repo (secrets, migrations, tests)
 - Row Level Security is on for every table, with no policies. The anon key can read nothing.
 - Content that only Dorian edits lives in `content/`. Edit, push, deploy. Rows that other rows point at (guests, teams, stops, challenges) are seeded from `content/`.
 - Every server action calls `requireGuest()` or `requireAdmin()` first (from T2 on).
+- **Phone-first admin.** During the weekend Dorian has only a phone: no code changes, no SQL, no Vercel env edits. Anything he might need to change or fix on the night is an admin page control (a switch, an edit, an undo, a reset), not a content edit, a migration or an env var. Each thread asks "what would Dorian need to change here on Dec 18-19?" and builds that into its admin page.
 - All times render in `America/Los_Angeles`, whatever the phone's time zone.
 - Live data reaches guests by polling `GET /api/state` every 5 s while the tab is visible (from T3 on). Admin actions return the new state, so the admin screen updates at once.
 - Each thread ends with: migration applied, deployed to Vercel, checked on a real phone, committed.
@@ -208,7 +209,7 @@ If missed: send the itinerary as a group chat message.
 - Supabase project. Migration `0001`: a `settings` table (`key`, `value` jsonb), with RLS on.
 - `lib/db.ts` with the server-only Supabase client
 - `GET /api/health`: reads one `settings` row and returns ok
-- Daily Vercel cron on `/api/health`. A free Supabase project pauses after 1 week without traffic, so this keeps it awake until Dec 20.
+- Daily Vercel cron on `/api/health`. A free Supabase project pauses after 1 week without traffic, so this keeps it awake through the upload window (Dec 27).
 - `content/itinerary.ts` and the `/` page
 - `GET /api/calendar.ics`, with `?events=` to keep only picked cards (by tag)
 - Env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
@@ -468,9 +469,9 @@ If missed: a shared Google Photos album link in the group chat.
 
 **Adds**
 
-- Supabase Storage private bucket `photos`
+- Supabase Storage private bucket `photos` (JPEG only, 5 MB per file), created by migration `0007`
 - Migration `0007`: `photos` (`id`, `guest_id`, `path`, `thumb_path`, `caption`, `taken_at`, `tag`, `hidden`, `created_at`)
-- Client libraries `exifr` and `browser-image-compression`
+- Client library `exifr` (reads the time taken). Resizing is a canvas draw in `app/(guest)/photos/prepare.ts`, so `browser-image-compression` is not needed.
 - Server actions `createUploadUrls(count)` and `savePhoto(...)`
 - `/photos` page
 
@@ -479,7 +480,7 @@ If missed: a shared Google Photos album link in the group chat.
 1. The guest picks one or more photos.
 2. The client reads the original timestamp with `exifr`, before resizing strips it.
 3. The client resizes: full size at max 2000 px (~500 KB JPEG) and a 400 px thumbnail. This also converts HEIC.
-4. `createUploadUrls` checks the session and the upload window (Fri Dec 18 6:00 PM to Sun Dec 20 noon, Pacific), then returns two signed upload URLs per photo.
+4. `createUploadUrls` checks the session and the upload window (Fri Dec 18 6:00 PM to the end of Sun Dec 27, Pacific, so guests have the week after to upload), then returns two signed upload URLs per photo.
 5. The client uploads both files straight to the bucket, one photo at a time, with progress.
 6. `savePhoto` inserts the row with caption and `taken_at`.
 
@@ -488,7 +489,7 @@ If missed: a shared Google Photos album link in the group chat.
 - The grid uses signed thumbnail URLs that last 1 hour. Tap a photo for a signed full-size URL.
 - Plain `<img>` tags, not `next/image`. Photos are already resized, and this avoids Vercel's image optimization quota.
 - Each photo shows the uploader's name and caption. No polling. Guests pull to refresh.
-- For testing, an env flag `UPLOADS_OPEN=true` bypasses the window.
+- Upload switch on `/admin/photos` (`settings.uploads_mode`): Auto (the window), Open now (testing before the weekend), Closed (stops uploads if something goes wrong). No row means Auto. It replaced an `UPLOADS_OPEN` env var, so no redeploy is needed.
 
 **Done when**
 
@@ -547,7 +548,7 @@ If missed: a shared Google Photos album link in the group chat.
 
 - [ ] Real guest names and teams in `content/guests.ts`, then seed
 - [ ] Real Vercel env vars, including a fresh `ADMIN_PIN_HASH`
-- [ ] Remove `UPLOADS_OPEN` from production
+- [ ] Photos admin upload switch set back to Auto
 - [ ] Health cron confirmed running
 - [ ] Paper fallbacks printed: bingo cards, crawl passports, tally sheet
 - [ ] Code freeze
