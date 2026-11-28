@@ -2,7 +2,8 @@
 
 import { useRef, useState, useSyncExternalStore } from 'react';
 import { Button } from '@/components/Button';
-import { CAPTION_MAX, MAX_PER_UPLOAD } from '@/lib/photos';
+import { cards } from '@/content/itinerary';
+import { CAPTION_MAX, MAX_PER_UPLOAD, suggestTag } from '@/lib/photos';
 import { createUploadUrls, savePhoto } from './actions';
 import { preparePhoto, putFile, type Prepared } from './prepare';
 
@@ -10,6 +11,7 @@ type Item = {
   key: string;
   name: string;
   caption: string;
+  tag: string; // '' means no tag
   preview?: string;
   prepared?: Prepared;
   failed?: boolean;
@@ -19,9 +21,9 @@ const noSubscribe = () => () => {};
 
 type Progress = { index: number; count: number; loaded: number; total: number };
 
-// Pick photos, add captions, upload. Each photo is resized on the phone first, then sent
+// Pick photos, add captions and tags, upload. Each photo is resized on the phone first, then sent
 // straight to the bucket with signed URLs, one photo at a time.
-export function UploadForm() {
+export function UploadForm({ tags }: { tags: string[] }) {
   const input = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [preparing, setPreparing] = useState(false);
@@ -57,7 +59,7 @@ export function UploadForm() {
     if (picked.length > room) setError(`Up to ${MAX_PER_UPLOAD} photos at a time. Upload these, then pick more.`);
     const added = picked.slice(0, Math.max(room, 0)).map((file) => ({
       file,
-      item: { key: crypto.randomUUID(), name: file.name, caption: '' } as Item,
+      item: { key: crypto.randomUUID(), name: file.name, caption: '', tag: '' } as Item,
     }));
     setItems((list) => [...list, ...added.map((a) => a.item)]);
 
@@ -66,7 +68,9 @@ export function UploadForm() {
     for (const { file, item } of added) {
       try {
         const prepared = await preparePhoto(file);
-        update(item.key, { prepared, preview: URL.createObjectURL(prepared.thumb) });
+        // Pre-selected from the itinerary card at the time taken (or now). The guest can change it.
+        const tag = suggestTag(cards, prepared.takenAt, Date.now()) ?? '';
+        update(item.key, { prepared, tag, preview: URL.createObjectURL(prepared.thumb) });
       } catch {
         update(item.key, { failed: true });
       }
@@ -96,7 +100,7 @@ export function UploadForm() {
         sent += full.size;
         await putFile(ticket.thumbUrl, thumb, show);
         sent += thumb.size;
-        const saved = await savePhoto({ path: ticket.path, thumbPath: ticket.thumbPath, caption: item.caption, takenAt });
+        const saved = await savePhoto({ path: ticket.path, thumbPath: ticket.thumbPath, caption: item.caption, takenAt, tag: item.tag || null });
         if (saved.error) throw new Error(saved.error);
         remove([item.key]);
       }
@@ -116,7 +120,7 @@ export function UploadForm() {
       {items.length > 0 && (
         <ul className="flex flex-col gap-3">
           {items.map((item, n) => (
-            <li key={item.key} className="flex items-center gap-3">
+            <li key={item.key} className="flex items-start gap-3">
               {item.preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={item.preview} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
@@ -126,16 +130,32 @@ export function UploadForm() {
               {item.failed ? (
                 <span className="text-[14px] text-muted">This photo could not be opened on this phone.</span>
               ) : (
-                <input
-                  type="text"
-                  value={item.caption}
-                  maxLength={CAPTION_MAX}
-                  disabled={busy || !item.prepared}
-                  onChange={(e) => update(item.key, { caption: e.target.value })}
-                  aria-label={`Caption for photo ${n + 1}`}
-                  placeholder={item.prepared ? 'Caption (optional)' : 'Getting it ready…'}
-                  className="min-h-11 min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 text-[16px] text-text placeholder:text-muted"
-                />
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <input
+                    type="text"
+                    value={item.caption}
+                    maxLength={CAPTION_MAX}
+                    disabled={busy || !item.prepared}
+                    onChange={(e) => update(item.key, { caption: e.target.value })}
+                    aria-label={`Caption for photo ${n + 1}`}
+                    placeholder={item.prepared ? 'Caption (optional)' : 'Getting it ready…'}
+                    className="min-h-11 min-w-0 rounded-lg border border-line bg-bg px-3 text-[16px] text-text placeholder:text-muted"
+                  />
+                  <select
+                    value={item.tag}
+                    disabled={busy || !item.prepared}
+                    onChange={(e) => update(item.key, { tag: e.target.value })}
+                    aria-label={`Tag for photo ${n + 1}`}
+                    className="h-11 min-w-0 rounded-lg border border-line bg-bg px-3 text-[16px] text-text"
+                  >
+                    <option value="">No tag</option>
+                    {tags.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               )}
             </li>
           ))}

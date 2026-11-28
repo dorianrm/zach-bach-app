@@ -135,6 +135,22 @@ A running list of edge cases found while building, and how each one is covered. 
 | iPhone HEIC photo | Safari opens it and the canvas converts it to JPEG | Phone pending |
 | HEIC on Android Chrome | Chrome cannot open HEIC: "This photo could not be opened on this phone." | Accepted |
 | Tapped photo | Full size over the tab bar, with name, caption and Close | E2E |
+| Photo taken during a timed card | That card's tag pre-selected (Dinner, Crawl, Airsoft) | Unit, E2E |
+| Photo with no time taken | Tag of the card happening at upload time | Unit |
+| Taken outside the weekend or between cards | No tag pre-selected | Unit |
+| TBD cards (Topgolf, Saturday pub) | Never pre-selected. Guest picks them by hand. | Unit |
+| Tag not in the list (typo, old tag, free text) | "Pick a tag from the list." on save and on retag | Unit |
+| `?tag=` unknown | Shows every photo | E2E |
+| Filter with no matches | "No Topgolf photos yet." | E2E |
+| Guest opens someone else's photo | No Delete, no organizer controls | E2E |
+| Guest deletes their own photo | Row and both files gone, two taps | E2E |
+| Guest calls delete on someone else's photo | Sent to the admin PIN prompt, nothing deleted | Not tested |
+| Photo deleted on another phone first | Delete does nothing, no error | Not tested |
+| Dorian hides a photo | Gone for guests, still shown to Dorian as "Hidden" so he can unhide it | E2E |
+| Dorian changes a tag | Saved at once, the photo moves to that filter | E2E |
+| Admin window ended, Dorian taps Hide | PIN prompt, then back to `/photos` | Not tested |
+| Tag select on iPhone | 44 points tall (WebKit ignores `min-height` on `<select>`) | E2E (screenshot) |
+| Test photos left from phone checks | "Delete all photos" on Photos admin, two taps, also removes stray files | E2E |
 | Guest removed from `content/guests.ts` | Their photo rows go with them (files stay in the bucket for the export) | Accepted |
 
 ## Bingo

@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { cleanCaption, cleanTakenAt, exifToIso, fitSize, ownedPhotoId, parseUploadMode, photoPaths, uploadsOpen } from './photos';
+import { cards, type Card } from '../content/itinerary';
+import {
+  cleanCaption,
+  cleanTag,
+  cleanTakenAt,
+  exifToIso,
+  fitSize,
+  ownedPhotoId,
+  parseUploadMode,
+  photoPaths,
+  photoTags,
+  suggestTag,
+  uploadsOpen,
+} from './photos';
 import { pacificToUtc } from './time';
 
 const GUEST = '11111111-1111-4111-8111-111111111111';
@@ -92,5 +105,52 @@ describe('fitSize', () => {
 
   it('never scales up', () => {
     expect(fitSize(300, 200, 2000, 'long')).toEqual({ width: 300, height: 200 });
+  });
+});
+
+describe('tags', () => {
+  const iso = (local: string) => new Date(pacificToUtc(local)).toISOString();
+  const NOW = pacificToUtc('2026-12-18T20:00');
+
+  it('lists the itinerary tags once each, in order', () => {
+    expect(photoTags(cards)).toEqual(['Dinner', 'Crawl', 'Topgolf', 'Pub', 'Airsoft']);
+  });
+
+  it('pre-selects the card that matches the time taken', () => {
+    expect(suggestTag(cards, iso('2026-12-18T19:00'), NOW)).toBe('Dinner');
+    expect(suggestTag(cards, iso('2026-12-18T21:29'), NOW)).toBe('Dinner');
+    expect(suggestTag(cards, iso('2026-12-18T21:30'), NOW)).toBe('Crawl');
+    expect(suggestTag(cards, iso('2026-12-19T00:45'), NOW)).toBe('Crawl');
+    expect(suggestTag(cards, iso('2026-12-19T21:00'), NOW)).toBe('Airsoft');
+  });
+
+  it('with no time taken, uses the card happening at upload time', () => {
+    expect(suggestTag(cards, null, pacificToUtc('2026-12-18T22:00'))).toBe('Crawl');
+    expect(suggestTag(cards, null, pacificToUtc('2026-12-19T14:00'))).toBeNull();
+  });
+
+  it('gives no tag outside the weekend or between cards', () => {
+    expect(suggestTag(cards, iso('2026-12-10T19:30'), NOW)).toBeNull();
+    expect(suggestTag(cards, iso('2026-12-18T18:30'), NOW)).toBeNull();
+    expect(suggestTag(cards, iso('2026-12-19T13:00'), NOW)).toBeNull();
+    expect(suggestTag(cards, iso('2026-12-20T09:00'), NOW)).toBeNull();
+  });
+
+  it('a card with no end runs until the next card starts', () => {
+    const open: Card[] = [
+      { day: 'fri', title: 'A', start: '2026-12-18T19:00', tag: 'A' },
+      { day: 'fri', title: 'B', start: '2026-12-18T22:00', end: '2026-12-18T23:00', tag: 'B' },
+    ];
+    expect(suggestTag(open, iso('2026-12-18T21:59'), NOW)).toBe('A');
+    expect(suggestTag(open, iso('2026-12-18T23:00'), NOW)).toBeNull();
+  });
+
+  it('accepts only list tags, and empty as no tag', () => {
+    expect(cleanTag(cards, 'Pub')).toBe('Pub');
+    expect(cleanTag(cards, '')).toBeNull();
+    expect(cleanTag(cards, null)).toBeNull();
+    expect(cleanTag(cards, 'pub')).toBeUndefined();
+    expect(cleanTag(cards, 'Strip club')).toBeUndefined();
+    expect(cleanTag(cards, 3)).toBeUndefined();
   });
 });

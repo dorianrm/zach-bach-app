@@ -35,7 +35,7 @@ Update this table when a thread's PR merges.
 | T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
 | T7 Win + head start | Not started | |
 | T8 Upload + view | Live. Uploads open Dec 18 to 27 (Photos admin switch). | #10 |
-| T9 Tags, filter, delete, hide | Not started | |
+| T9 Tags, filter, delete, hide | In review | #12 |
 | T10 Testing and dry run | Not started | |
 
 ### Parallel tracks
@@ -506,12 +506,13 @@ If missed: a shared Google Photos album link in the group chat.
 - Tag picker at upload, pre-selected from the itinerary card that matches `taken_at`
 - `?tag=` filter on `/photos`
 - Server actions `deletePhoto(id)`, `setHidden(id, bool)`, `setTag(id, tag)`
-- Admin controls on each photo
+- Admin controls on each photo, in its full view on `/photos`: tag picker, Hide or Unhide, Delete
+- "Delete all photos" on `/admin/photos` (two taps), to clear test photos before Dec 18 with no SQL. Vercel previews use the real database, so phone checks leave photos there.
 
 **Rules**
 
 - Tags come from the itinerary cards' `tag` field: `Dinner`, `Crawl`, `Topgolf`, `Pub`, `Airsoft`.
-- No timestamp: the current card's tag is pre-selected. Taken outside the weekend: no tag.
+- No timestamp: the current card's tag is pre-selected. Taken outside the weekend, or between cards: no tag. TBD cards (no times) are never pre-selected, so guests pick Topgolf and Pub by hand until those cards get times.
 - No free-text tags.
 - Delete: owner or admin. It removes the row and both files.
 - Hide and edit tag: admin only. Hidden photos are left out for guests.
