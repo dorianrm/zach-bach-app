@@ -1,8 +1,8 @@
 import 'server-only';
 import { db } from './db';
-import { emptyMarks, shuffleTiles } from './bingo';
+import { emptyMarks, hasLine, shuffleTiles } from './bingo';
 
-export type Card = { tileOrder: number[]; marks: boolean[] };
+export type Card = { tileOrder: number[]; marks: boolean[]; place: number | null };
 
 // The guest's card. The first visit shuffles one and saves it. If two first visits race
 // (two phones at once), the second insert is ignored and both read the same saved card.
@@ -11,7 +11,48 @@ export async function getOrCreateCard(guestId: string): Promise<Card> {
     .from('bingo_cards')
     .upsert({ guest_id: guestId, tile_order: shuffleTiles(), marks: emptyMarks() }, { onConflict: 'guest_id', ignoreDuplicates: true });
   if (insert.error) throw insert.error;
-  const { data, error } = await db().from('bingo_cards').select('tile_order, marks').eq('guest_id', guestId).single();
+  const { data, error } = await db().from('bingo_cards').select('tile_order, marks, place').eq('guest_id', guestId).single();
   if (error) throw error;
-  return { tileOrder: data.tile_order, marks: data.marks };
+  return { tileOrder: data.tile_order, marks: data.marks, place: data.place };
+}
+
+export type BingoWinner = { place: number; name: string };
+
+// 1st, 2nd and 3rd so far, in order. Names only, so they are safe to show before the team reveal.
+export async function loadBingoWinners(): Promise<BingoWinner[]> {
+  const { data, error } = await db()
+    .from('bingo_cards')
+    .select('place, guests (name)')
+    .not('place', 'is', null)
+    .order('place');
+  if (error) throw error;
+  // bingo_cards.guest_id points at one guest, so Supabase returns an object. The untyped
+  // client cannot know that and guesses an array.
+  return data.map((row) => ({ place: row.place, name: (row.guests as unknown as { name: string }).name }));
+}
+
+export type BoardRow = { guestId: string; name: string; marked: number | null; line: boolean; place: number | null };
+
+// Every player for the organizer: tiles marked (null before the first visit), line, place.
+// Players with a place come first, in place order, then by name.
+export async function loadBingoBoard(): Promise<BoardRow[]> {
+  const [guests, cards] = await Promise.all([
+    db().from('guests').select('id, name').eq('plays_bingo', true).order('name'),
+    db().from('bingo_cards').select('guest_id, marks, place'),
+  ]);
+  for (const r of [guests, cards]) if (r.error) throw r.error;
+  const byGuest = new Map((cards.data ?? []).map((c) => [c.guest_id, c]));
+  return (guests.data ?? [])
+    .map((g) => {
+      const card = byGuest.get(g.id);
+      return {
+        guestId: g.id,
+        name: g.name,
+        // The free center does not count.
+        marked: card ? card.marks.filter(Boolean).length - 1 : null,
+        line: card ? hasLine(card.marks) : false,
+        place: card?.place ?? null,
+      };
+    })
+    .sort((a, b) => (a.place ?? 9) - (b.place ?? 9));
 }

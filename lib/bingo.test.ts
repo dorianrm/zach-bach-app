@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bingoTiles } from '@/content/bingo-tiles';
-import { cardSquares, emptyMarks, FREE, isMarkable, shuffleTiles, TILE_COUNT } from './bingo';
+import { cardSquares, emptyMarks, FREE, hasLine, isMarkable, LINES, shuffleTiles, TILE_COUNT } from './bingo';
 
 describe('bingo tiles', () => {
   it('has exactly 24 tiles, all different', () => {
@@ -61,5 +61,56 @@ describe('isMarkable', () => {
     expect(isMarkable(25)).toBe(false);
     expect(isMarkable(1.5)).toBe(false);
     expect(isMarkable('3')).toBe(false);
+  });
+});
+
+const marked = (...positions: number[]) => {
+  const marks = emptyMarks();
+  for (const p of positions) marks[p] = true;
+  return marks;
+};
+
+describe('LINES', () => {
+  it('has 5 rows, 5 columns and 2 diagonals, all different', () => {
+    expect(LINES).toHaveLength(12);
+    expect(new Set(LINES.map((l) => [...l].sort((a, b) => a - b).join(','))).size).toBe(12);
+    expect(LINES).toContainEqual([0, 6, 12, 18, 24]);
+    expect(LINES).toContainEqual([4, 8, 12, 16, 20]);
+  });
+});
+
+describe('hasLine', () => {
+  it('finds each of the 12 lines', () => {
+    for (const line of LINES) expect(hasLine(marked(...line))).toBe(true);
+  });
+
+  it('counts the free center in its row, column and both diagonals', () => {
+    expect(hasLine(marked(10, 11, 13, 14))).toBe(true);
+    expect(hasLine(marked(2, 7, 17, 22))).toBe(true);
+    expect(hasLine(marked(0, 6, 18, 24))).toBe(true);
+    expect(hasLine(marked(4, 8, 16, 20))).toBe(true);
+  });
+
+  it('is false for a fresh card', () => {
+    expect(hasLine(emptyMarks())).toBe(false);
+  });
+
+  it('is false for every line missing one square', () => {
+    for (const line of LINES) {
+      for (const gap of line) {
+        if (gap === FREE) continue;
+        expect(hasLine(marked(...line.filter((p) => p !== gap)))).toBe(false);
+      }
+    }
+  });
+
+  it('does not wrap around the edge of a row', () => {
+    expect(hasLine(marked(3, 4, 5, 6, 7))).toBe(false);
+  });
+
+  it('is false for a busy card with no full line', () => {
+    // Blank: 0, 8, 14, 16, 22. One per row, one per column, and one on each diagonal.
+    const blank = [0, 8, 14, 16, 22];
+    expect(hasLine(marked(...Array.from({ length: 25 }, (_, i) => i).filter((p) => !blank.includes(p))))).toBe(false);
   });
 });

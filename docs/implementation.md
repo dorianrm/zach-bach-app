@@ -32,8 +32,8 @@ Update this table when a thread's PR merges.
 | T3 Reveal teams + scoreboard | Live. Real squads not set yet. | #5 |
 | T4 Award + undo | Not started | |
 | T5 Stops, placements, bonus, final | Not started | |
-| T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
-| T7 Win + head start | Not started | |
+| T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | #8 |
+| T7 Win + head start | Live | #11 |
 | T8 Upload + view | Live. Uploads open Dec 18 to 27 (Photos admin switch). | #10 |
 | T9 Tags, filter, delete, hide | Not started | |
 | T10 Testing and dry run | Not started | |
@@ -450,12 +450,20 @@ If missed: printed bingo cards, scored on paper at dessert.
 - A guest with no team still gets a place, but no award row. Dorian can add points by hand.
 - Bingo rows exist before the reveal but stay hidden until T3's reveal.
 
+**Admin (`/admin/bingo`, in More's Organizer section)**
+
+Dorian has only his phone on the weekend, so every bingo fix is a control here, not SQL.
+
+- Player board: every player with tiles marked, line, and place. Winners first, to check a claim at the table.
+- "Remove a win" (two taps): clears the place, undoes the head start (`undone_at`, never deleted), and clears that guest's marks. Without the clear, their next tap would win the place back. Other winners keep their places. A freed place goes to the next line only if no one holds a later place.
+- "Clear all bingo" (two taps): deletes every card, place and bingo award. For the reset after preview checks, before Dec 18.
+
 **Done when**
 
 - Three test guests win in order, and the banner shows on every phone
 - After the reveal, the scoreboard history shows "Bingo 1st: +3" and the others
 - Line detection covers all 12 lines and near misses (Vitest)
-- 5 concurrent `claim_bingo_place` calls give exactly places 1, 2, and 3 (Vitest)
+- 5 concurrent `claim_bingo_place` calls give exactly places 1, 2, and 3 (Playwright, against the test database: Vitest has no database)
 
 **Thickens later:** v2 adds an open and lock window and a "who's close" board.
 

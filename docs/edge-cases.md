@@ -124,7 +124,26 @@ A running list of edge cases found while building, and how each one is covered. 
 | Save fails (no signal) | The tap is undone on screen, "Not saved. Check your signal and tap again." | Not tested |
 | Free center | Always marked, not a button. The server and the database refuse to change it. | E2E, Unit |
 | Position out of range or not a number | Refused by the server action | Unit |
-| Zach (`plays_bingo = false`) | No card, and the action refuses him | E2E |
+| Zach (`plays_bingo = false`) | No card, and the action refuses him. Sees the winners banner. | E2E |
+| Three guests finish lines | 1st, 2nd, 3rd on every phone within ~5 s, no reload | E2E |
+| 4th line | "The three places were already taken.", no points | E2E |
+| Two lines finished at the same moment | Table lock gives one place each. Unique index on `place` is the backstop. | E2E (5 claims at once) |
+| Unmark after a win | Place and points stay. Honor system. | E2E |
+| Second line, or the same line again | Same place, no second award | E2E |
+| Winner with no team | Place, no award row. Dorian adds points by hand. | E2E |
+| Bingo win before the team reveal | Award row saved. Names show in the banner, scores stay hidden until the reveal. | E2E |
+| Head start after the reveal | Team totals include 3, 2, 1 | E2E |
+| Line patterns | 12 lines, free center counts, no wrap across rows, near misses | Unit |
+| Wrong or troll win | Dorian removes it on `/admin/bingo`: place and points taken back, marks cleared, other places kept | E2E |
+| Removed winner taps again | Gets the cleared card back, no new win | E2E |
+| Removed place is the last one taken | The next line gets it | E2E |
+| Removed place is not the last one taken | Stays empty. Dorian adds points by hand if needed. | E2E |
+| Double tap on "Remove" | Undoes one award only | Not tested |
+| Admin taps a bingo control below the fold | Panel closes, and a message right under it says what changed. The list that changed may be off screen. | E2E |
+| "Clear all bingo" with nothing to clear | "Nothing to clear. No one has a card yet." | E2E |
+| Test data from preview checks | "Clear all bingo" on `/admin/bingo` deletes every card and bingo point | E2E |
+| Guest opens `/admin/bingo` | Sent to `/admin` | E2E |
+| Guest removed from content after winning | Card deleted with the guest. Their place stays empty, the next line never reuses it. | Accepted |
 | Long tile text on a 375-point phone | Fits the square, last row clears the tab bar | E2E (screenshot) |
 | Tile text edited after cards exist | Cards show the new text. Reordering or adding tiles would scramble cards. | Accepted |
 
