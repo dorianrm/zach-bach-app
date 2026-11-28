@@ -86,7 +86,12 @@ async function CrawlAdmin() {
           {route.stops.length === 0 && <li className="text-muted">No stops yet. Run the seed.</li>}
         </ol>
         {/* Keyed by stop, so the panel opens closed again after each reveal. */}
-        {next && (
+        {/* Guests get no stops until the teams are revealed, so a stop revealed earlier
+            would show on no phone. */}
+        {next && !revealed && (
+          <p className="rounded-xl bg-card p-[18px] text-[15px] text-muted">Reveal teams first. Then you can reveal stops.</p>
+        )}
+        {next && revealed && (
           <Confirm
             key={`reveal-${next.id}`}
             summary={`Reveal next stop: ${next.name}`}

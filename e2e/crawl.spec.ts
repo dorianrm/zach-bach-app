@@ -48,7 +48,7 @@ test('Dorian reveals the teams, a guest phone shows them within ~5 s, and hiding
   await page.getByRole('link', { name: 'Crawl admin' }).click();
   // Rosters show to Dorian before the reveal.
   await expect(page.getByText('Alex Weirth, Dorian Raboy')).toBeVisible();
-  await page.getByText('Reveal teams').click();
+  await page.getByText('Reveal teams', { exact: true }).click();
   await submitAction(page, 'Yes, reveal to everyone');
   await expect(page.getByText('Teams are revealed.')).toBeVisible();
 
@@ -184,6 +184,18 @@ test('a mock crawl runs end to end with a guest phone watching', async ({ page, 
   await expect(guest.getByText('Final: Gray Squad wins with 3 points!')).toBeVisible({ timeout: 8_000 });
   await guest.screenshot({ path: `test-results/screens/${testInfo.project.name}-crawl-final.png` });
   await guest.context().close();
+});
+
+test('stops stay locked until the teams are revealed', async ({ page }) => {
+  await joinAsOrganizer(page, ADMIN_PIN);
+  await page.goto('/admin/crawl');
+  await expect(page.getByText('Reveal teams first. Then you can reveal stops.')).toBeVisible();
+  await expect(page.getByText('Reveal next stop: Test Stop A')).toHaveCount(0);
+
+  await page.getByText('Reveal teams', { exact: true }).click();
+  await submitAction(page, 'Yes, reveal to everyone');
+  await expect(page.getByText('Reveal next stop: Test Stop A')).toBeVisible();
+  await expect(page.getByText('Reveal teams first.')).toHaveCount(0);
 });
 
 test('hiding the last stop takes it off guest phones', async ({ page }) => {

@@ -3,7 +3,7 @@
 import { refresh } from 'next/cache';
 import { requireAdmin } from '@/lib/auth';
 import { awardLabel, awardText, parseBonus, parsePlacement, topTie } from '@/lib/awards';
-import { crawlFinal, lastUndoable, loadStandings } from '@/lib/crawl';
+import { crawlFinal, lastUndoable, loadStandings, teamsRevealed } from '@/lib/crawl';
 import { PLACEMENT_POINTS } from '@/lib/crawl-rows';
 import { db } from '@/lib/db';
 
@@ -141,9 +141,11 @@ async function revealedStops(): Promise<{ id: string; revealed_at: string | null
   return data ?? [];
 }
 
-// Shows the next stop in route order on every phone.
+// Shows the next stop in route order on every phone. Refused before the teams reveal,
+// because guests get no stops until then.
 export async function revealNextStop(): Promise<void> {
   await requireAdmin();
+  if (!(await teamsRevealed())) return;
   const next = (await revealedStops()).find((s) => s.revealed_at === null);
   if (next) {
     const { error } = await db()

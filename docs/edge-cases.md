@@ -94,6 +94,7 @@ A running list of edge cases found while building, and how each one is covered. 
 | Guest reads `/api/state` after a stop reveal | Only revealed stops. Upcoming stops never leave the server. | E2E |
 | No stop revealed yet | "First stop revealed soon." Anytime challenges and rules still show. | E2E |
 | Stop revealed, guest phone not reloaded | New current stop with a map link within ~5 s. The previous stop moves to "Past stops". | E2E |
+| Dorian reveals a stop before the teams | Not possible: "Reveal teams first." replaces the stop panel, and the server refuses. Guests get no stops before the teams reveal. | E2E |
 | Stop revealed too early | "Hide last stop" (two taps) takes it off phones. Points already given stay. | E2E |
 | Every stop revealed | No "Reveal next stop" panel | Not tested |
 | Award a head-to-head challenge with one tap | Server refuses: "That one is head to head. Enter the placement." | Not tested |
