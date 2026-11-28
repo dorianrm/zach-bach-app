@@ -30,7 +30,7 @@ Update this table when a thread's PR merges.
 | T2 Join with name + PIN | Live | #2 |
 | Calendar picker (extra, T1 area) | Live | #3 |
 | T3 Reveal teams + scoreboard | Live. Real squads not set yet. | #5 |
-| T4 Award + undo | Not started | |
+| T4 Award + undo | Live | #7 |
 | T5 Stops, placements, bonus, final | Not started | |
 | T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
 | T7 Win + head start | Not started | |
