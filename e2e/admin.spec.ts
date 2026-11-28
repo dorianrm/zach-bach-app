@@ -20,13 +20,15 @@ test('a guest cannot reach admin', async ({ page }) => {
   await join(page, 'Alex Weirth', '1234', { setup: true });
 
   await page.goto('/more');
-  await expect(page.getByRole('link', { name: 'Admin' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Organizer' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Guest PINs' })).toHaveCount(0);
 
   await page.goto('/admin');
   await expect(page.getByText('This page is for the organizer only.')).toBeVisible();
 
   await page.goto('/admin/pins');
-  await expect(page).toHaveURL('/admin');
+  await expect(page).toHaveURL('/admin?next=%2Fadmin%2Fpins');
+  await expect(page.getByText('This page is for the organizer only.')).toBeVisible();
 });
 
 test('the organizer signs in with the admin PIN, which also unlocks admin', async ({ page }) => {
@@ -41,7 +43,9 @@ test('the organizer signs in with the admin PIN, which also unlocks admin', asyn
   await signInAsOrganizer(page);
   await page.goto('/more');
   await expect(page.getByText('Signed in as Dorian Raboy.')).toBeVisible();
-  await page.getByRole('link', { name: 'Admin', exact: true }).click();
+  // Flat Organizer section: each admin page is one tap from More.
+  await expect(page.getByRole('heading', { name: 'Organizer' })).toBeVisible();
+  await page.screenshot({ path: `test-results/screens/${test.info().project.name}-more-organizer.png` });
   await page.getByRole('link', { name: 'Guest PINs' }).click();
   await expect(page.getByRole('listitem').filter({ hasText: 'Alex Weirth' })).toBeVisible();
   await expect(page.getByRole('listitem').filter({ hasText: 'Dorian Raboy' })).toHaveCount(0);
@@ -75,10 +79,13 @@ test('10 wrong tries at /join lock the organizer, but not the re-prompt on their
   await expect(troll.getByText(/Too many wrong tries/)).toBeVisible();
   await troll.context().close();
 
-  await page.goto('/admin');
+  // The organizer page asks for the PIN, then returns to itself.
+  await page.goto('/admin/crawl');
+  await expect(page).toHaveURL('/admin?next=%2Fadmin%2Fcrawl');
   await page.getByLabel('Admin PIN').fill(ADMIN_PIN);
   await submitAction(page, 'Unlock admin');
-  await expect(page.getByText('Admin is unlocked on this device for 12 hours.')).toBeVisible();
+  await expect(page).toHaveURL('/admin/crawl');
+  await expect(page.getByRole('heading', { name: 'Crawl admin' })).toBeVisible();
 });
 
 test('the organizer views a guest PIN', async ({ page, browser }, testInfo) => {

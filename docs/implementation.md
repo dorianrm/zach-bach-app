@@ -142,7 +142,7 @@ Build these first in T1, then build every page from them.
 | Component | What it is |
 | --- | --- |
 | `PageShell` | Header band, content area, and `TabBar` |
-| `TabBar` | Plan, Crawl, Bingo, Photos, More. Active tab in `--color-link`. More holds /join, /admin and future organizer pages. |
+| `TabBar` | Plan, Crawl, Bingo, Photos, More. Active tab in `--color-link`. More holds /join and, for Dorian, an Organizer section with one link per admin page (`lib/organizer.ts`). |
 | `DayHeading` | Yellow uppercase section label |
 | `EventCard` | Time column plus body. `now` variant adds the yellow border and a "Now" tag. |
 | `Button` | `primary` (yellow, dark text) and `secondary` (outline in `--color-line`) |
@@ -278,7 +278,7 @@ If missed: paper passports for the route and challenges, and Zach's tally sheet 
 - Migration `0004`: `awards` (`id`, `team_id`, `challenge_id`, `points`, `source`, `note`, `created_at`, `undone_at`). `challenge_id` stays null until T5.
 - `GET /api/state`: `teamsRevealed`, rosters, and scores
 - Client polling hook, 5 s, paused when the tab is hidden
-- `/crawl` guest page (joined guests only) and `/admin/crawl`, linked from More for Dorian
+- `/crawl` guest page (joined guests only) and `/admin/crawl`, linked from the Organizer section on More
 - `settings.teams_revealed` row, `false` until the reveal
 - Server actions `revealTeams()` and `hideTeams()`: set `settings.teams_revealed` to `true` or `false`
 

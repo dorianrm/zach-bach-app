@@ -54,7 +54,8 @@ A running list of edge cases found while building, and how each one is covered. 
 | Edge case | Expected | Status |
 |---|---|---|
 | Guest opens `/admin` or `/admin/pins` | "This page is for the organizer only." or sent back to `/admin` | E2E |
-| Admin link on More | Shows only for Dorian | E2E |
+| Organizer section on More | Shows only for Dorian, one link per admin page | E2E |
+| Admin window ended, Dorian opens an organizer page | PIN prompt, then back to that page | E2E |
 | Dorian on `/join` | Same label ("Your PIN") and messages as any guest | E2E |
 | Wrong admin PIN at `/join` | "Wrong PIN." | E2E |
 | 10 wrong tries at `/join` on Dorian | Locked 10 minutes | E2E |

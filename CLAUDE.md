@@ -44,7 +44,7 @@ Bachelor-weekend site for Dec 18-19, 2026. Dorian builds it with an agent and ru
 ## UI conventions
 
 - Tokens only (`app/globals.css`), never raw hex in components. The default Tailwind palette is removed.
-- Every new organizer or utility page gets a link on `/more` (admin links only for `is_admin`). Pages reached from More use `<PageShell active="more">`.
+- More (`/more`) has guest links, then an "Organizer" section (only for `is_admin`) with one link per admin page. Add every new admin page to `lib/organizer.ts`: More and `/admin` both list from it. Admin pages call `requireAdmin('/admin/...')`, so the 12-hour PIN prompt returns there. Pages reached from More use `<PageShell active="more">`.
 - Check new screens at phone size (375 to 393 points wide). The fixed tab bar must never hide a primary button.
 
 ## Git and PRs
