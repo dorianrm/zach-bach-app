@@ -32,8 +32,8 @@ Update this table when a thread's PR merges.
 | T3 Reveal teams + scoreboard | Live. Real squads not set yet. | #5 |
 | T4 Award + undo | Not started | |
 | T5 Stops, placements, bonus, final | Not started | |
-| T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
-| T7 Win + head start | Not started | |
+| T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | #8 |
+| T7 Win + head start | Live | #11 |
 | T8 Upload + view | Live. Uploads open Dec 18 to 27 (Photos admin switch). | #10 |
 | T9 Tags, filter, delete, hide | Not started | |
 | T10 Testing and dry run | Not started | |
@@ -455,7 +455,7 @@ If missed: printed bingo cards, scored on paper at dessert.
 - Three test guests win in order, and the banner shows on every phone
 - After the reveal, the scoreboard history shows "Bingo 1st: +3" and the others
 - Line detection covers all 12 lines and near misses (Vitest)
-- 5 concurrent `claim_bingo_place` calls give exactly places 1, 2, and 3 (Vitest)
+- 5 concurrent `claim_bingo_place` calls give exactly places 1, 2, and 3 (Playwright, against the test database: Vitest has no database)
 
 **Thickens later:** v2 adds an open and lock window and a "who's close" board.
 
