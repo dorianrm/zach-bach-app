@@ -89,8 +89,12 @@ A running list of edge cases found while building, and how each one is covered. 
 | Edge case | Expected | Status |
 |---|---|---|
 | Visitor opens `/photos` without joining | Sent to `/join?next=/photos` | E2E |
-| Upload before Fri Dec 18 6:00 PM or after Sun Dec 20 noon | Upload form replaced by the open and close times. `createUploadUrls` refuses too. | Unit |
-| `UPLOADS_OPEN` set to anything but `true` | Window still applies | Unit |
+| Upload before Fri Dec 18 6:00 PM or after Sun Dec 20 noon (Auto) | Upload form replaced by the open and close times. `createUploadUrls` refuses too. | Unit, E2E |
+| Upload switch missing or an unknown value | Read as Auto (the window) | Unit |
+| Dorian sets uploads to Closed | Guests see "Uploads are paused right now.", no picker | E2E |
+| Dorian sets uploads to Open now before the weekend | Picker shows any day | E2E |
+| Guest opens `/admin/photos` | Sent to `/admin` for the PIN | E2E |
+| E2E run during Dec 18-20 | The Auto check expects closed, so it fails inside the window | Accepted |
 | 12 MP camera photo | Resized on the phone to 2000 px (under 1 MB) plus a 400 px thumbnail | E2E |
 | EXIF time taken | Read as Pacific wall clock, whatever zone the phone is in | Unit, E2E |
 | No EXIF, or a `0000:00:00` date | `taken_at` is null | Unit |

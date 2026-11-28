@@ -110,6 +110,7 @@ CLAUDE.md          how to work in this repo (secrets, migrations, tests)
 - Row Level Security is on for every table, with no policies. The anon key can read nothing.
 - Content that only Dorian edits lives in `content/`. Edit, push, deploy. Rows that other rows point at (guests, teams, stops, challenges) are seeded from `content/`.
 - Every server action calls `requireGuest()` or `requireAdmin()` first (from T2 on).
+- **Phone-first admin.** During the weekend Dorian has only a phone: no code changes, no SQL, no Vercel env edits. Anything he might need to change or fix on the night is an admin page control (a switch, an edit, an undo, a reset), not a content edit, a migration or an env var. Each thread asks "what would Dorian need to change here on Dec 18-19?" and builds that into its admin page.
 - All times render in `America/Los_Angeles`, whatever the phone's time zone.
 - Live data reaches guests by polling `GET /api/state` every 5 s while the tab is visible (from T3 on). Admin actions return the new state, so the admin screen updates at once.
 - Each thread ends with: migration applied, deployed to Vercel, checked on a real phone, committed.
@@ -488,7 +489,7 @@ If missed: a shared Google Photos album link in the group chat.
 - The grid uses signed thumbnail URLs that last 1 hour. Tap a photo for a signed full-size URL.
 - Plain `<img>` tags, not `next/image`. Photos are already resized, and this avoids Vercel's image optimization quota.
 - Each photo shows the uploader's name and caption. No polling. Guests pull to refresh.
-- For testing, an env flag `UPLOADS_OPEN=true` bypasses the window.
+- Upload switch on `/admin/photos` (`settings.uploads_mode`): Auto (the window), Open now (testing before the weekend), Closed (stops uploads if something goes wrong). No row means Auto. It replaced an `UPLOADS_OPEN` env var, so no redeploy is needed.
 
 **Done when**
 
@@ -547,7 +548,7 @@ If missed: a shared Google Photos album link in the group chat.
 
 - [ ] Real guest names and teams in `content/guests.ts`, then seed
 - [ ] Real Vercel env vars, including a fresh `ADMIN_PIN_HASH`
-- [ ] Remove `UPLOADS_OPEN` from production
+- [ ] Photos admin upload switch set back to Auto
 - [ ] Health cron confirmed running
 - [ ] Paper fallbacks printed: bingo cards, crawl passports, tally sheet
 - [ ] Code freeze
