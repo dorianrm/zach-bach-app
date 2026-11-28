@@ -84,6 +84,23 @@ A running list of edge cases found while building, and how each one is covered. 
 | Phone tab in the background | Polling stops, and fetches once on return | Not tested |
 | Phone offline for a moment | Keeps the last scores, retries on the next tick | Not tested |
 
+## Bingo
+
+| Edge case | Expected | Status |
+|---|---|---|
+| Visitor opens `/bingo` without joining | Sent to `/join?next=/bingo` | E2E |
+| Two guests | Different layouts, same 24 tiles | E2E, Unit |
+| Reload, or the same guest on a second phone | Same layout and marks | E2E |
+| Two first visits at once (two phones) | One card saved. The second insert is ignored, both read the same card. | Not tested |
+| Quick taps in a row | Every mark saves. Only the last server answer replaces the card on screen. | E2E |
+| Tap undone on a second phone | First phone shows it after a reload | E2E |
+| Save fails (no signal) | The tap is undone on screen, "Not saved. Check your signal and tap again." | Not tested |
+| Free center | Always marked, not a button. The server and the database refuse to change it. | E2E, Unit |
+| Position out of range or not a number | Refused by the server action | Unit |
+| Zach (`plays_bingo = false`) | No card, and the action refuses him | E2E |
+| Long tile text on a 375-point phone | Fits the square, last row clears the tab bar | E2E (screenshot) |
+| Tile text edited after cards exist | Cards show the new text. Reordering or adding tiles would scramble cards. | Accepted |
+
 ## Calendar
 
 | Edge case | Expected | Status |
