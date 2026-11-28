@@ -3,6 +3,7 @@
 import { DayHeading } from '@/components/DayHeading';
 import { Tag } from '@/components/Tag';
 import { TeamChip } from '@/components/TeamChip';
+import { TeamHistory } from '@/components/TeamHistory';
 import type { CrawlState } from '@/lib/crawl';
 import { usePolled } from '@/lib/poll';
 
@@ -40,6 +41,7 @@ export function CrawlView({ initial, myTeamId }: { initial: CrawlState; myTeamId
               <p className="text-[15px] leading-normal text-body">
                 {team.members.length > 0 ? team.members.join(', ') : 'No one yet'}
               </p>
+              <TeamHistory team={team.name} history={team.history} />
             </li>
           );
         })}

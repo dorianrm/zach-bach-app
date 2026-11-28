@@ -50,3 +50,8 @@ const stampFormat = new Intl.DateTimeFormat('en-US', {
 export function formatStamp(local: string): string {
   return stampFormat.format(pacificToUtc(local)).replace(' at ', ', ');
 }
+
+// A database timestamp as a Pacific clock: '9:14 PM'
+export function formatInstant(iso: string): string {
+  return clockFormat.format(new Date(iso));
+}
