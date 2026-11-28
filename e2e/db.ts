@@ -67,3 +67,8 @@ export async function fileSize(path: string): Promise<number> {
   check('download', error);
   return data!.size;
 }
+
+// Deletes every bingo card, so each bingo test starts before anyone opened /bingo.
+export async function resetBingo() {
+  check('clear bingo cards', (await db.from('bingo_cards').delete().not('guest_id', 'is', null)).error);
+}

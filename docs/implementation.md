@@ -32,9 +32,9 @@ Update this table when a thread's PR merges.
 | T3 Reveal teams + scoreboard | Live. Real squads not set yet. | #5 |
 | T4 Award + undo | Not started | |
 | T5 Stops, placements, bonus, final | Not started | |
-| T6 Card + mark | Not started | |
+| T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
 | T7 Win + head start | Not started | |
-| T8 Upload + view | In review. Waits on migration `0007` and phone checks. | |
+| T8 Upload + view | In review. Waits on phone checks. | #10 |
 | T9 Tags, filter, delete, hide | Not started | |
 | T10 Testing and dry run | Not started | |
 
@@ -409,10 +409,10 @@ If missed: printed bingo cards, scored on paper at dessert.
 
 **Adds**
 
-- Migration `0006`: `bingo_cards` (`guest_id` PK, `tile_order` int[24], `marks` bool[25], `place` int unique, `won_at`)
+- Migration `0006`: `bingo_cards` (`guest_id` PK, `tile_order` int[24], `marks` bool[25], `place` int unique, `won_at`), and `set_bingo_mark(guest, position, marked)`, which sets one array element in place
 - `content/bingo-tiles.ts`: 24 tiles
 - `/bingo` page
-- Server action `toggleMark(position)`
+- Server action `setMark(position, marked)`. It sends the new value, not a flip, so a retried request cannot undo itself. It writes one element, so quick taps never overwrite each other.
 
 **Rules**
 
@@ -435,7 +435,7 @@ If missed: printed bingo cards, scored on paper at dessert.
 
 **Adds**
 
-- Line check in `toggleMark`: 5 rows, 5 columns, 2 diagonals
+- Line check in `setMark`: 5 rows, 5 columns, 2 diagonals
 - Migration `0008`: Postgres function `claim_bingo_place(guest_id)` (number reserved for the bingo track)
 - `/api/state` adds `bingoWinners`
 - Winners banner on `/bingo`
