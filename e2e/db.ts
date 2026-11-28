@@ -36,3 +36,8 @@ export async function resetCrawl() {
   check('clear awards', (await db.from('awards').delete().not('id', 'is', null)).error);
   check('hide teams', (await db.from('settings').upsert({ key: 'teams_revealed', value: false })).error);
 }
+
+// Deletes every bingo card, so each bingo test starts before anyone opened /bingo.
+export async function resetBingo() {
+  check('clear bingo cards', (await db.from('bingo_cards').delete().not('guest_id', 'is', null)).error);
+}
