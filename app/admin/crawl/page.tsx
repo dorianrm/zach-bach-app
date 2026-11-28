@@ -1,9 +1,11 @@
 import { Suspense } from 'react';
 import { PageShell } from '@/components/PageShell';
 import { TeamChip } from '@/components/TeamChip';
+import { TeamHistory } from '@/components/TeamHistory';
 import { requireAdmin } from '@/lib/auth';
-import { loadStandings, teamsRevealed } from '@/lib/crawl';
+import { lastUndoable, loadStandings, teamsRevealed } from '@/lib/crawl';
 import { hideTeams, revealTeams } from './actions';
+import { AwardControls } from './AwardControls';
 
 export default function AdminCrawlPage() {
   return (
@@ -25,7 +27,7 @@ export default function AdminCrawlPage() {
 
 async function CrawlAdmin() {
   await requireAdmin('/admin/crawl');
-  const [revealed, teams] = await Promise.all([teamsRevealed(), loadStandings()]);
+  const [revealed, teams, last] = await Promise.all([teamsRevealed(), loadStandings(), lastUndoable()]);
 
   return (
     <>
@@ -52,6 +54,8 @@ async function CrawlAdmin() {
         />
       )}
 
+      <AwardControls teams={teams.map((t) => ({ id: t.id, name: t.name }))} undoText={last?.text ?? null} />
+
       {/* Dorian sees the rosters before the reveal, to check them. */}
       <ul className="flex flex-col gap-3">
         {teams.map((team) => (
@@ -61,6 +65,7 @@ async function CrawlAdmin() {
               <span className="font-mono text-xl font-medium text-highlight">{team.total}</span>
             </div>
             <p className="text-[15px] text-body">{team.members.length > 0 ? team.members.join(', ') : 'No one yet'}</p>
+            <TeamHistory team={team.name} history={team.history} />
           </li>
         ))}
       </ul>

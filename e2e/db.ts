@@ -105,3 +105,12 @@ export async function fileExists(path: string): Promise<boolean> {
   if (error && !data) return false;
   return data;
 }
+
+export async function setTeamsRevealed(value: boolean) {
+  check('set teams revealed', (await db.from('settings').upsert({ key: 'teams_revealed', value })).error);
+}
+
+// An award row written straight to the database, for rows the admin page cannot make yet (bingo, T7).
+export async function insertAward(row: { team_id: string; points: number; source: string; note?: string; created_at?: string }) {
+  check('insert award', (await db.from('awards').insert(row)).error);
+}

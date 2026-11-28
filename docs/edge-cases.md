@@ -79,6 +79,16 @@ A running list of edge cases found while building, and how each one is covered. 
 | Reveal tapped too early | "Hide teams" sends phones back to "Teams revealed soon." within ~5 s. Anyone who already looked has seen the squads. | E2E |
 | "Hide teams" right after a reveal | Opens closed, so the first tap opens it (React used to reuse the open reveal panel) | E2E |
 | Undone award | Left out of the totals | Unit |
+| Dorian awards +2, guest phone not reloaded | New total within ~5 s, and a "Point history" line | E2E |
+| Dorian undoes it | Guest total drops back within ~5 s. The row stays in the database with `undone_at` set. | E2E |
+| Undone award in team history | Left out of the history | Unit, E2E |
+| Newest award is a bingo row (T7) | "Undo last" skips it and takes back the newest award Dorian gave | E2E |
+| Nothing left to undo | "No awards to undo.", button disabled. A stale page gets "Nothing to undo." | E2E |
+| Two undo taps race | The second one finds the row already undone and says so, never undoes two rows | Not tested |
+| Bonus with no squad, points outside 1 to 10, or a note over 60 characters | Toast with the reason, nothing saved | Unit |
+| Blank note | History and toast say "Bonus" | Unit |
+| Award times | History shows Pacific time, whatever the phone's time zone | Unit |
+| After "Give points" | The form resets to the first squad and +1, so a second tap needs a fresh pick | Manual |
 | Two teams tied | Content order (`teams.sort`) | Unit |
 | Guest with no team (Zach) | Not on any roster, no "Your squad" | Unit |
 | Phone tab in the background | Polling stops, and fetches once on return | Not tested |
