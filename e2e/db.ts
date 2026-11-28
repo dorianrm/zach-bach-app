@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { GUESTS, TEAMS, testDb } from './env';
+import { crawlRows } from '../lib/crawl-rows';
+import { ANYTIME, GUESTS, STOPS, TEAMS, testDb } from './env';
 
 const { url, key } = testDb();
 const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -8,12 +9,17 @@ function check(label: string, error: unknown) {
   if (error) throw new Error(`${label}: ${JSON.stringify(error)}`);
 }
 
-// Replaces every team and guest in the test database with the fixtures.
+// Replaces every team, guest, stop and challenge in the test database with the fixtures.
 export async function loadFixtures() {
+  const route = crawlRows(STOPS, ANYTIME);
+  check('delete challenges', (await db.from('challenges').delete().not('id', 'is', null)).error);
+  check('delete stops', (await db.from('stops').delete().not('id', 'is', null)).error);
   check('delete guests', (await db.from('guests').delete().not('id', 'is', null)).error);
   check('delete teams', (await db.from('teams').delete().not('id', 'is', null)).error);
   check('insert teams', (await db.from('teams').insert(TEAMS)).error);
   check('insert guests', (await db.from('guests').insert(GUESTS)).error);
+  check('insert stops', (await db.from('stops').insert(route.stops)).error);
+  check('insert challenges', (await db.from('challenges').insert(route.challenges)).error);
 }
 
 // Clears every PIN and lock, so each test starts from "nobody has joined".
@@ -31,10 +37,20 @@ export async function guestId(name: string): Promise<string> {
   return data!.id;
 }
 
-// Hides the teams again and clears every award, so each crawl test starts before the reveal.
+// Hides the teams and stops again, clears every award and the final, so each crawl test
+// starts before the reveal.
 export async function resetCrawl() {
   check('clear awards', (await db.from('awards').delete().not('id', 'is', null)).error);
-  check('hide teams', (await db.from('settings').upsert({ key: 'teams_revealed', value: false })).error);
+  check('hide stops', (await db.from('stops').update({ revealed_at: null }).not('id', 'is', null)).error);
+  check(
+    'reset settings',
+    (
+      await db.from('settings').upsert([
+        { key: 'teams_revealed', value: false },
+        { key: 'crawl_final', value: false },
+      ])
+    ).error,
+  );
 }
 
 // Deletes every photo row and every file in the test bucket. Files are listed per guest

@@ -91,6 +91,22 @@ A running list of edge cases found while building, and how each one is covered. 
 | After "Give points" | The form resets to the first squad and +1, so a second tap needs a fresh pick | Manual |
 | Two teams tied | Content order (`teams.sort`) | Unit |
 | Guest with no team (Zach) | Not on any roster, no "Your squad" | Unit |
+| Guest reads `/api/state` after a stop reveal | Only revealed stops. Upcoming stops never leave the server. | E2E |
+| No stop revealed yet | "First stop revealed soon." Anytime challenges and rules still show. | E2E |
+| Stop revealed, guest phone not reloaded | New current stop with a map link within ~5 s. The previous stop moves to "Past stops". | E2E |
+| Dorian reveals a stop before the teams | Not possible: "Reveal teams first." replaces the stop panel, and the server refuses. Guests get no stops before the teams reveal. | E2E |
+| Stop revealed too early | "Hide last stop" (two taps) takes it off phones. Points already given stay. | E2E |
+| Every stop revealed | No "Reveal next stop" panel | Not tested |
+| Award a head-to-head challenge with one tap | Server refuses: "That one is head to head. Enter the placement." | Not tested |
+| Placement with one squad picked twice, or no 2nd | "A squad can only place once." or "Pick 1st and 2nd." | Unit |
+| Placement with only 2 squads | 3rd is optional, so 3 and 2 points | Unit |
+| Undo right after a placement | Takes back all of its rows at once (one insert, same `created_at`) | E2E |
+| Award saved | The challenge pick clears, so a second squad tap cannot repeat it | Manual |
+| Final with the top two tied | Refused with a toast naming the tied squads | Unit, E2E |
+| After the final | Every phone shows the winner. Award, bonus and undo are gone and the server refuses them. | E2E |
+| Final tapped by mistake | No button to reopen. Set `settings.crawl_final` to `false` in the SQL editor. | Accepted |
+| Challenge removed from `content/crawl.ts` after it was awarded | Re-seed deletes it. Its awards keep their points and lose the link. | Not tested |
+| Duplicate id or an award challenge with no points in `content/crawl.ts` | Seed stops before any write | Unit |
 | Phone tab in the background | Polling stops, and fetches once on return | Not tested |
 | Phone offline for a moment | Keeps the last scores, retries on the next tick | Not tested |
 

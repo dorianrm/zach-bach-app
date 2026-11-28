@@ -1,11 +1,14 @@
-// Loads content/guests.ts into the database. Safe to re-run.
+// Loads content/guests.ts and content/crawl.ts into the database. Safe to re-run.
 // Run: npm run seed  (reads SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from .env.local)
 //
-// - Teams and guests are upserted. Guest PINs, failed attempts and locks are never touched.
+// - Teams, guests, stops and challenges are upserted. Guest PINs, failed attempts, locks
+//   and stop reveals are never touched.
 // - Rows that are no longer in content/ are deleted, and the script lists them.
 
 import { createClient } from '@supabase/supabase-js';
+import { anytime, stops } from '../content/crawl.ts';
 import { guests, teams } from '../content/guests.ts';
+import { crawlRows } from '../lib/crawl-rows.ts';
 
 const url = process.env.SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -54,4 +57,26 @@ if (goneTeams.length > 0) {
   console.log('Deleted teams:', goneTeams.join(', '));
 }
 
-console.log(`Seeded ${teams.length} teams and ${guests.length} guests.`);
+// Crawl: stops first, since challenges point at them. Then remove what content dropped:
+// challenges before stops. Awards keep their points when a challenge goes away.
+const crawl = crawlRows(stops, anytime);
+check('upsert stops', await db.from('stops').upsert(crawl.stops));
+check('upsert challenges', await db.from('challenges').upsert(crawl.challenges));
+
+const existingChallenges = check('list challenges', await db.from('challenges').select('id')) ?? [];
+const goneChallenges = existingChallenges.map((c) => c.id).filter((id) => !crawl.challenges.some((c) => c.id === id));
+if (goneChallenges.length > 0) {
+  check('delete challenges', await db.from('challenges').delete().in('id', goneChallenges));
+  console.log('Deleted challenges:', goneChallenges.join(', '));
+}
+
+const existingStops = check('list stops', await db.from('stops').select('id')) ?? [];
+const goneStops = existingStops.map((s) => s.id).filter((id) => !crawl.stops.some((s) => s.id === id));
+if (goneStops.length > 0) {
+  check('delete stops', await db.from('stops').delete().in('id', goneStops));
+  console.log('Deleted stops:', goneStops.join(', '));
+}
+
+console.log(
+  `Seeded ${teams.length} teams, ${guests.length} guests, ${crawl.stops.length} stops and ${crawl.challenges.length} challenges.`,
+);

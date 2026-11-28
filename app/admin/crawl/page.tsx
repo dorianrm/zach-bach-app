@@ -3,8 +3,9 @@ import { PageShell } from '@/components/PageShell';
 import { TeamChip } from '@/components/TeamChip';
 import { TeamHistory } from '@/components/TeamHistory';
 import { requireAdmin } from '@/lib/auth';
-import { lastUndoable, loadStandings, teamsRevealed } from '@/lib/crawl';
-import { hideTeams, revealTeams } from './actions';
+import { Banner } from '@/components/Banner';
+import { crawlFinal, lastUndoable, loadRoute, loadStandings, teamsRevealed } from '@/lib/crawl';
+import { hideLastStop, hideTeams, revealNextStop, revealTeams } from './actions';
 import { AwardControls } from './AwardControls';
 
 export default function AdminCrawlPage() {
@@ -27,7 +28,25 @@ export default function AdminCrawlPage() {
 
 async function CrawlAdmin() {
   await requireAdmin('/admin/crawl');
-  const [revealed, teams, last] = await Promise.all([teamsRevealed(), loadStandings(), lastUndoable()]);
+  const [revealed, teams, last, route, final] = await Promise.all([
+    teamsRevealed(),
+    loadStandings(),
+    lastUndoable(),
+    loadRoute(),
+    crawlFinal(),
+  ]);
+  const shown = route.stops.filter((s) => s.revealed);
+  const current = shown.at(-1);
+  const next = route.stops.find((s) => !s.revealed);
+  // Award picks: the current stop first, then anytime, then earlier stops.
+  const groups = [
+    ...(current ? [{ label: current.name, challenges: current.challenges }] : []),
+    { label: 'Anytime', challenges: route.anytime },
+    ...shown
+      .slice(0, -1)
+      .reverse()
+      .map((s) => ({ label: s.name, challenges: s.challenges })),
+  ].filter((g) => g.challenges.length > 0);
 
   return (
     <>
@@ -54,7 +73,50 @@ async function CrawlAdmin() {
         />
       )}
 
-      <AwardControls teams={teams.map((t) => ({ id: t.id, name: t.name }))} undoText={last?.text ?? null} />
+      {final && <Banner>Final: {teams[0]?.name} wins with {teams[0]?.total} points.</Banner>}
+
+      <section className="flex flex-col gap-3">
+        <h3 className="text-base font-semibold text-text">Stops</h3>
+        <ol className="flex flex-col gap-1 rounded-xl bg-card p-[18px] text-[15px]">
+          {route.stops.map((s) => (
+            <li key={s.id} className={s.revealed ? 'text-text' : 'text-muted'}>
+              {s.name} · {s === current ? 'Current' : s.revealed ? 'Done' : 'Hidden'}
+            </li>
+          ))}
+          {route.stops.length === 0 && <li className="text-muted">No stops yet. Run the seed.</li>}
+        </ol>
+        {/* Keyed by stop, so the panel opens closed again after each reveal. */}
+        {/* Guests get no stops until the teams are revealed, so a stop revealed earlier
+            would show on no phone. */}
+        {next && !revealed && (
+          <p className="rounded-xl bg-card p-[18px] text-[15px] text-muted">Reveal teams first. Then you can reveal stops.</p>
+        )}
+        {next && revealed && (
+          <Confirm
+            key={`reveal-${next.id}`}
+            summary={`Reveal next stop: ${next.name}`}
+            body="Every phone shows this stop, its address and its challenges within a few seconds."
+            button="Yes, reveal the stop"
+            action={revealNextStop}
+          />
+        )}
+        {current && (
+          <Confirm
+            key={`hide-${current.id}`}
+            summary={`Hide last stop: ${current.name}`}
+            body="Phones stop showing it within a few seconds. Points already given stay."
+            button="Yes, hide the stop"
+            action={hideLastStop}
+          />
+        )}
+      </section>
+
+      <AwardControls
+        teams={teams.map((t) => ({ id: t.id, name: t.name }))}
+        groups={groups}
+        undoText={last?.text ?? null}
+        final={final}
+      />
 
       {/* Dorian sees the rosters before the reveal, to check them. */}
       <ul className="flex flex-col gap-3">

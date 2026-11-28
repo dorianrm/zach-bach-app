@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { PageShell } from '@/components/PageShell';
+import { rules } from '@/content/crawl';
 import { requireGuest } from '@/lib/auth';
 import { crawlState } from '@/lib/crawl';
 import { CrawlView } from './CrawlView';
@@ -16,5 +17,5 @@ export default function CrawlPage() {
 
 async function CrawlContent() {
   const me = await requireGuest('/crawl');
-  return <CrawlView initial={await crawlState()} myTeamId={me.teamId} />;
+  return <CrawlView initial={await crawlState()} myTeamId={me.teamId} rules={rules} />;
 }

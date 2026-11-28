@@ -4,6 +4,7 @@
 import { randomBytes, scryptSync } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { devices } from '@playwright/test';
+import type { Challenge, Stop } from '../content/crawl';
 
 export const PORT = 3020;
 export const BASE_URL = `http://localhost:${PORT}`;
@@ -24,6 +25,21 @@ export const GUESTS = [
   { name: 'Chris Acosta', team_id: 'gray', is_admin: false, plays_bingo: true },
   { name: 'Zach Luis', team_id: null, is_admin: false, plays_bingo: false },
 ];
+
+// Fixture route, loaded like content/crawl.ts.
+export const STOPS: Stop[] = [
+  {
+    id: 'stop-a',
+    name: 'Test Stop A',
+    address: '1 Main St, Portland, OR',
+    challenges: [
+      { id: 'a-photo', title: 'Photo with the bartender', kind: 'award', points: 2 },
+      { id: 'a-darts', title: 'Darts', kind: 'placement' },
+    ],
+  },
+  { id: 'stop-b', name: 'Test Stop B', address: '2 Main St, Portland, OR', challenges: [{ id: 'b-toast', title: 'Best toast', kind: 'award', points: 3 }] },
+];
+export const ANYTIME: Challenge[] = [{ id: 'any-chant', title: 'Squad chant', kind: 'award', points: 1 }];
 
 function readEnvFile(path: string): Record<string, string> {
   if (!existsSync(path)) return {};
