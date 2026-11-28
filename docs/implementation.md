@@ -31,7 +31,7 @@ Update this table when a thread's PR merges.
 | Calendar picker (extra, T1 area) | Live | #3 |
 | T3 Reveal teams + scoreboard | Live. Real squads not set yet. | #5 |
 | T4 Award + undo | Live | #7 |
-| T5 Stops, placements, bonus, final | Not started | |
+| T5 Stops, placements, bonus, final | Live. Placeholder stops, real ones not set yet. | #9 |
 | T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
 | T7 Win + head start | Not started | |
 | T8 Upload + view | Live. Uploads open Dec 18 to 27 (Photos admin switch). | #10 |
@@ -558,7 +558,7 @@ If missed: a shared Google Photos album link in the group chat.
 ## Open questions
 
 - [ ] Guest list with team assignments. Needed for T7 testing by Dec 10.
-- [ ] Crawl stops, challenges, and points. Needed for T5 by Dec 6.
+- [ ] Crawl stops, challenges, points and rules. Needed for T5 by Dec 6. T5 ships with placeholders in `content/crawl.ts`.
 - [ ] Team names and colors. T3 shipped with placeholders (Red, Gray, Gold Squad). Needed before the reveal.
 - [ ] Final 24 bingo tiles, plus Zach's catchphrase and usual drink order. Needed for T6.
 - [ ] Bingo prize
