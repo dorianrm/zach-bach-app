@@ -14,9 +14,9 @@ describe('uploadsOpen', () => {
     expect(uploadsOpen(at('2026-12-18T18:00'), 'auto')).toBe(true);
   });
 
-  it('closes Sun Dec 20 at noon Pacific', () => {
-    expect(uploadsOpen(at('2026-12-20T11:59'), 'auto')).toBe(true);
-    expect(uploadsOpen(at('2026-12-20T12:00'), 'auto')).toBe(false);
+  it('closes at the end of Sun Dec 27 Pacific', () => {
+    expect(uploadsOpen(at('2026-12-27T23:59'), 'auto')).toBe(true);
+    expect(uploadsOpen(at('2026-12-28T00:00'), 'auto')).toBe(false);
   });
 
   it("'open' opens it any day, 'closed' closes it inside the window", () => {

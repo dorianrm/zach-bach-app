@@ -7,7 +7,7 @@ import { uploadStatus } from '@/lib/uploads';
 import { setUploadMode } from './actions';
 
 const choices: { mode: UploadMode; label: string; detail: string }[] = [
-  { mode: 'auto', label: 'Auto', detail: 'Open Fri Dec 18 at 6:00 PM, closed Sun Dec 20 at noon.' },
+  { mode: 'auto', label: 'Auto', detail: 'Open Fri Dec 18 at 6:00 PM, closed after Sun Dec 27.' },
   { mode: 'open', label: 'Open now', detail: 'For testing before the weekend. Set back to Auto after.' },
   { mode: 'closed', label: 'Closed', detail: 'Stops new uploads. Guests still see the gallery.' },
 ];

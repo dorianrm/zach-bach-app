@@ -34,7 +34,7 @@ Update this table when a thread's PR merges.
 | T5 Stops, placements, bonus, final | Not started | |
 | T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
 | T7 Win + head start | Not started | |
-| T8 Upload + view | In review. Waits on phone checks. | #10 |
+| T8 Upload + view | In review. Phone checks passed. | #10 |
 | T9 Tags, filter, delete, hide | Not started | |
 | T10 Testing and dry run | Not started | |
 
@@ -209,7 +209,7 @@ If missed: send the itinerary as a group chat message.
 - Supabase project. Migration `0001`: a `settings` table (`key`, `value` jsonb), with RLS on.
 - `lib/db.ts` with the server-only Supabase client
 - `GET /api/health`: reads one `settings` row and returns ok
-- Daily Vercel cron on `/api/health`. A free Supabase project pauses after 1 week without traffic, so this keeps it awake until Dec 20.
+- Daily Vercel cron on `/api/health`. A free Supabase project pauses after 1 week without traffic, so this keeps it awake through the upload window (Dec 27).
 - `content/itinerary.ts` and the `/` page
 - `GET /api/calendar.ics`, with `?events=` to keep only picked cards (by tag)
 - Env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
@@ -480,7 +480,7 @@ If missed: a shared Google Photos album link in the group chat.
 1. The guest picks one or more photos.
 2. The client reads the original timestamp with `exifr`, before resizing strips it.
 3. The client resizes: full size at max 2000 px (~500 KB JPEG) and a 400 px thumbnail. This also converts HEIC.
-4. `createUploadUrls` checks the session and the upload window (Fri Dec 18 6:00 PM to Sun Dec 20 noon, Pacific), then returns two signed upload URLs per photo.
+4. `createUploadUrls` checks the session and the upload window (Fri Dec 18 6:00 PM to the end of Sun Dec 27, Pacific, so guests have the week after to upload), then returns two signed upload URLs per photo.
 5. The client uploads both files straight to the bucket, one photo at a time, with progress.
 6. `savePhoto` inserts the row with caption and `taken_at`.
 

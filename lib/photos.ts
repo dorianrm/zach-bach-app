@@ -4,9 +4,10 @@ import { pacificToUtc } from './time';
 
 export const BUCKET = 'photos';
 
-// Uploads open Fri Dec 18 6:00 PM and close Sun Dec 20 noon, Pacific.
+// Uploads open Fri Dec 18 6:00 PM and close at the end of Sun Dec 27, Pacific. The week
+// after the weekend gives guests time to upload from their camera rolls.
 const OPENS = pacificToUtc('2026-12-18T18:00');
-const CLOSES = pacificToUtc('2026-12-20T12:00');
+const CLOSES = pacificToUtc('2026-12-28T00:00');
 
 // Set by Dorian on /admin/photos. 'auto' follows the window, 'open' is for testing before
 // the weekend, 'closed' stops uploads if something goes wrong.

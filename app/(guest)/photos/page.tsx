@@ -35,7 +35,7 @@ async function PhotosContent() {
           <p className="rounded-xl bg-card p-[18px] text-[15px] text-body">
             {mode === 'closed'
               ? 'Uploads are paused right now.'
-              : 'Uploads open Fri Dec 18 at 6:00 PM and close Sun Dec 20 at noon.'}
+              : 'Uploads open Fri Dec 18 at 6:00 PM and stay open through Sun Dec 27.'}
           </p>
         )}
       </section>

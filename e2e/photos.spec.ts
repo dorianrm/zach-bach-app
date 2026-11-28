@@ -146,11 +146,11 @@ test('Dorian closes, opens and sets uploads back to Auto from the phone', async 
   await expect(guest.getByText('Uploads are paused right now.')).toBeVisible();
   await expect(guest.getByLabel('Add photos')).toHaveCount(0);
 
-  // Auto follows the Dec 18-20 window. The suite runs before it, so uploads stay closed.
+  // Auto follows the Dec 18-27 window. The suite runs before it, so uploads stay closed.
   await submitAction(page, 'Auto');
   await expect(page.getByRole('button', { name: 'Auto', pressed: true })).toBeVisible();
   await guest.reload();
-  await expect(guest.getByText('Uploads open Fri Dec 18 at 6:00 PM and close Sun Dec 20 at noon.')).toBeVisible();
+  await expect(guest.getByText('Uploads open Fri Dec 18 at 6:00 PM and stay open through Sun Dec 27.')).toBeVisible();
 
   await submitAction(page, 'Open now');
   await guest.reload();
