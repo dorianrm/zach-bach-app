@@ -20,6 +20,40 @@ This file is the source of truth. Scope lives in `docs/tech-spec.md`. Claude own
 | M4: Gallery ready | Dec 14 | T8 Upload + view · T9 Tags, filter, delete, hide | Shared Google Photos album |
 | Freeze | Dec 16 | T10 Testing and dry run | Ship what passed, cut the rest |
 
+### Progress
+
+Update this table when a thread's PR merges.
+
+| Thread | Status | PR |
+| --- | --- | --- |
+| T1 Deploy + itinerary | Live | #1 |
+| T2 Join with name + PIN | Live | #2 |
+| Calendar picker (extra, T1 area) | Live | #3 |
+| T3 Reveal teams + scoreboard | Live. Real squads not set yet. | #5 |
+| T4 Award + undo | Not started | |
+| T5 Stops, placements, bonus, final | Not started | |
+| T6 Card + mark | Not started | |
+| T7 Win + head start | Not started | |
+| T8 Upload + view | Not started | |
+| T9 Tags, filter, delete, hide | Not started | |
+| T10 Testing and dry run | Not started | |
+
+### Parallel tracks
+
+After T3, the remaining threads form three tracks that can be built at the same time, one agent session per track, each in its own git worktree and branch:
+
+| Track | Threads, in order | Needs | Migrations |
+| --- | --- | --- | --- |
+| Crawl | T4, then T5 | T3 | T5: `0005` |
+| Bingo | T6, then T7 | T2. T7 also writes `awards` (T3). | T6: `0006`, T7: `0008` |
+| Gallery | T8, then T9 | T2 | T8: `0007` |
+
+T10 runs last, after all three tracks merge.
+
+- Migration numbers are reserved above, so tracks never pick the same number. A track that needs another migration takes the next free number and adds it here in the same PR.
+- Files more than one track touches: `components/TabBar.tsx` (each track flips its own `ready` flag), `lib/organizer.ts`, `app/api/state/route.ts` and `lib/crawl.ts` (state fields), `e2e/db.ts` (fixtures and resets), `docs/edge-cases.md`, this file. Keep edits there small, and rebase on `main` before merging.
+- Each track merges one thread at a time. After any merge, the other tracks rebase on `main`.
+
 Why this order:
 
 - T1 proves the whole path (repo, Vercel, Supabase, a real page) before any feature logic.
@@ -402,7 +436,7 @@ If missed: printed bingo cards, scored on paper at dessert.
 **Adds**
 
 - Line check in `toggleMark`: 5 rows, 5 columns, 2 diagonals
-- Postgres function `claim_bingo_place(guest_id)`
+- Migration `0008`: Postgres function `claim_bingo_place(guest_id)` (number reserved for the bingo track)
 - `/api/state` adds `bingoWinners`
 - Winners banner on `/bingo`
 
@@ -524,9 +558,9 @@ If missed: a shared Google Photos album link in the group chat.
 
 - [ ] Guest list with team assignments. Needed for T7 testing by Dec 10.
 - [ ] Crawl stops, challenges, and points. Needed for T5 by Dec 6.
-- [ ] Team names and colors. Needed for T3.
+- [ ] Team names and colors. T3 shipped with placeholders (Red, Gray, Gold Squad). Needed before the reveal.
 - [ ] Final 24 bingo tiles, plus Zach's catchphrase and usual drink order. Needed for T6.
 - [ ] Bingo prize
 - [ ] Saturday start times and pub name for the itinerary
-- [ ] Venmo handle. Needed for T1.
-- [ ] Repo host: personal GitHub account? Keep it off the Zillow org.
+- [ ] Venmo handle. The "Pay Dorian" button stays hidden until it is set.
+- [x] Repo host: `dorianrm/zach-bach-app`, Dorian's personal GitHub

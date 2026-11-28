@@ -6,7 +6,8 @@ Bachelor-weekend site for Dec 18-19, 2026. Dorian builds it with an agent and ru
 
 - **What to build:** `docs/implementation.md` is the source of truth (one thread per slice, T1 to T10). `docs/tech-spec.md` is the scope. Read the thread's section before you start.
 - **Edge cases:** `docs/edge-cases.md`. Add a row for every new edge case, and update the status when a test lands.
-- **Status:** T1 and T2 are live at `https://zach-bach-app.vercel.app`. Check `git log` and the docs for anything newer.
+- **Status:** the Progress table in `docs/implementation.md` (T1 to T3 are live at `https://zach-bach-app.vercel.app`). Update it when a thread merges.
+- **Inputs still owed by Dorian:** the Open questions list at the end of `docs/implementation.md` (real squads, crawl stops, bingo tiles). Build with placeholders and say so in the PR.
 
 ## Secrets
 
@@ -46,6 +47,16 @@ Bachelor-weekend site for Dec 18-19, 2026. Dorian builds it with an agent and ru
 - Tokens only (`app/globals.css`), never raw hex in components. The default Tailwind palette is removed.
 - More (`/more`) has guest links, then an "Organizer" section (only for `is_admin`) with one link per admin page. Add every new admin page to `lib/organizer.ts`: More and `/admin` both list from it. Admin pages call `requireAdmin('/admin/...')`, so the 12-hour PIN prompt returns there. Pages reached from More use `<PageShell active="more">`.
 - Check new screens at phone size (375 to 393 points wide). The fixed tab bar must never hide a primary button.
+
+## Parallel sessions
+
+The remaining threads run as three tracks (Crawl, Bingo, Gallery). See "Parallel tracks" in `docs/implementation.md` for the order, the reserved migration numbers and the shared files.
+
+- One session per track, each in its own worktree and branch. `.worktreeinclude` copies `.env.local` and `.env.test.local` into new worktrees. If a worktree has no env files, stop and say so.
+- Use only your track's reserved migration number. Do not edit another track's files beyond the shared ones listed there.
+- **One e2e run at a time.** All tracks share the test Supabase project and port 3020, and the suite wipes the test guests. Before `npm run e2e`, check that no other run is going (`pgrep -f "playwright test"`). If one is, wait for it to finish.
+- Before merging, rebase on `main` and run the full e2e suite once more.
+- Migrations still need Dorian to paste them into both projects. Batch them: tell Dorian as soon as a migration file is final.
 
 ## Git and PRs
 
