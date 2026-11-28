@@ -1,11 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
-import { fileSize, photosOf, resetPhotos, resetPins } from './db';
-import { testDb } from './env';
-import { enter, join, secondPhone } from './helpers';
+import { fileSize, photosOf, resetPhotos, resetPins, setUploadMode } from './db';
+import { ADMIN_PIN, testDb } from './env';
+import { enter, join, joinAsOrganizer, secondPhone, submitAction } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await resetPins();
   await resetPhotos();
+  // Open, so the upload tests can run any day. The switch test below sets its own.
+  await setUploadMode('open');
   await enter(page);
 });
 
@@ -119,4 +121,39 @@ test('the bucket is private: a file cannot be read without a signed URL', async 
   const [row] = await photosOf('Alex Weirth');
   const res = await page.request.get(`${testDb().url}/storage/v1/object/public/photos/${row.path}`);
   expect(res.ok()).toBe(false);
+});
+
+test('a guest cannot reach photos admin', async ({ page }) => {
+  await join(page, 'Alex Weirth', '1234', { setup: true });
+  await page.goto('/admin/photos');
+  await expect(page).toHaveURL('/admin?next=%2Fadmin%2Fphotos');
+});
+
+test('Dorian closes, opens and sets uploads back to Auto from the phone', async ({ page, browser }, testInfo) => {
+  const guest = await secondPhone(browser, testInfo);
+  await join(guest, 'Alex Weirth', '1234', { setup: true });
+
+  await joinAsOrganizer(page, ADMIN_PIN);
+  await page.goto('/more');
+  await page.getByRole('link', { name: 'Photos admin' }).click();
+  await expect(page.getByText('Uploads are open right now.')).toBeVisible();
+
+  await submitAction(page, 'Closed');
+  await expect(page.getByRole('button', { name: 'Closed', pressed: true })).toBeVisible();
+  await expect(page.getByText('Uploads are closed right now.')).toBeVisible();
+  await page.screenshot({ path: `test-results/screens/${testInfo.project.name}-photos-admin.png` });
+  await guest.goto('/photos');
+  await expect(guest.getByText('Uploads are paused right now.')).toBeVisible();
+  await expect(guest.getByLabel('Add photos')).toHaveCount(0);
+
+  // Auto follows the Dec 18-20 window. The suite runs before it, so uploads stay closed.
+  await submitAction(page, 'Auto');
+  await expect(page.getByRole('button', { name: 'Auto', pressed: true })).toBeVisible();
+  await guest.reload();
+  await expect(guest.getByText('Uploads open Fri Dec 18 at 6:00 PM and close Sun Dec 20 at noon.')).toBeVisible();
+
+  await submitAction(page, 'Open now');
+  await guest.reload();
+  await expect(guest.getByLabel('Add photos')).toBeVisible();
+  await guest.context().close();
 });

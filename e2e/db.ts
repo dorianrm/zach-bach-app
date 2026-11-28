@@ -52,6 +52,11 @@ export async function resetPhotos() {
   }
 }
 
+// The organizer's upload switch (settings.uploads_mode).
+export async function setUploadMode(mode: 'auto' | 'open' | 'closed') {
+  check('upload mode', (await db.from('settings').upsert({ key: 'uploads_mode', value: mode })).error);
+}
+
 export async function photosOf(name: string) {
   const { data, error } = await db
     .from('photos')
