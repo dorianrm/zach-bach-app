@@ -1,3 +1,5 @@
+import type { Card } from '../content/itinerary';
+import { currentCardIndex } from './itinerary';
 import { pacificToUtc } from './time';
 
 // Pure gallery rules, shared by the server actions, the upload form and the tests.
@@ -87,4 +89,24 @@ export function fitSize(
   const edge = side === 'long' ? Math.max(width, height) : Math.min(width, height);
   const scale = Math.min(1, max / edge);
   return { width: Math.round(width * scale), height: Math.round(height * scale) };
+}
+
+// Gallery tags are the itinerary cards' tags, in itinerary order. No free-text tags.
+export function photoTags(cards: Card[]): string[] {
+  return [...new Set(cards.map((c) => c.tag))];
+}
+
+// A tag from the list, or null for "no tag". Anything else is refused by the caller.
+export function cleanTag(cards: Card[], value: unknown): string | null | undefined {
+  if (value === null || value === '') return null;
+  return typeof value === 'string' && photoTags(cards).includes(value) ? value : undefined;
+}
+
+// The tag pre-selected at upload: the card happening when the photo was taken, or, with no
+// time taken, the card happening now. Outside every card (before, after or between): no tag.
+// TBD cards have no times, so they are never pre-selected. The guest picks them by hand.
+export function suggestTag(cards: Card[], takenAt: string | null, nowMs: number): string | null {
+  const at = takenAt ? Date.parse(takenAt) : nowMs;
+  const index = currentCardIndex(cards, at);
+  return index === -1 ? null : cards[index].tag;
 }
