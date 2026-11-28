@@ -17,7 +17,7 @@ const tabs: { id: Tab; label: string; href: string; ready: boolean; icon: ReactN
     ready: true,
     icon: icon(<><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>),
   },
-  { id: 'crawl', label: 'Crawl', href: '/crawl', ready: false, icon: icon(<path d="M5 21V4M5 4h11l-2 4 2 4H5" />) },
+  { id: 'crawl', label: 'Crawl', href: '/crawl', ready: true, icon: icon(<path d="M5 21V4M5 4h11l-2 4 2 4H5" />) },
   {
     id: 'bingo',
     label: 'Bingo',
