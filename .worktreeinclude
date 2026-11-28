@@ -1,0 +1,4 @@
+# Gitignored files Claude Code copies into each new worktree (parallel sessions).
+# Both env files are needed: .env.local for the app and seed, .env.test.local for e2e.
+.env.local
+.env.test.local
