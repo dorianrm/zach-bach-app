@@ -134,6 +134,13 @@ A running list of edge cases found while building, and how each one is covered. 
 | Bingo win before the team reveal | Award row saved. Names show in the banner, scores stay hidden until the reveal. | E2E |
 | Head start after the reveal | Team totals include 3, 2, 1 | E2E |
 | Line patterns | 12 lines, free center counts, no wrap across rows, near misses | Unit |
+| Wrong or troll win | Dorian removes it on `/admin/bingo`: place and points taken back, marks cleared, other places kept | E2E |
+| Removed winner taps again | Gets the cleared card back, no new win | E2E |
+| Removed place is the last one taken | The next line gets it | E2E |
+| Removed place is not the last one taken | Stays empty. Dorian adds points by hand if needed. | E2E |
+| Double tap on "Remove" | Undoes one award only | Not tested |
+| Test data from preview checks | "Clear all bingo" on `/admin/bingo` deletes every card and bingo point | E2E |
+| Guest opens `/admin/bingo` | Sent to `/admin` | E2E |
 | Guest removed from content after winning | Card deleted with the guest. Their place stays empty, the next line never reuses it. | Accepted |
 | Long tile text on a 375-point phone | Fits the square, last row clears the tab bar | E2E (screenshot) |
 | Tile text edited after cards exist | Cards show the new text. Reordering or adding tiles would scramble cards. | Accepted |

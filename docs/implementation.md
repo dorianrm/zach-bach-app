@@ -450,6 +450,14 @@ If missed: printed bingo cards, scored on paper at dessert.
 - A guest with no team still gets a place, but no award row. Dorian can add points by hand.
 - Bingo rows exist before the reveal but stay hidden until T3's reveal.
 
+**Admin (`/admin/bingo`, in More's Organizer section)**
+
+Dorian has only his phone on the weekend, so every bingo fix is a control here, not SQL.
+
+- Player board: every player with tiles marked, line, and place. Winners first, to check a claim at the table.
+- "Remove a win" (two taps): clears the place, undoes the head start (`undone_at`, never deleted), and clears that guest's marks. Without the clear, their next tap would win the place back. Other winners keep their places. A freed place goes to the next line only if no one holds a later place.
+- "Clear all bingo" (two taps): deletes every card, place and bingo award. For the reset after preview checks, before Dec 18.
+
 **Done when**
 
 - Three test guests win in order, and the banner shows on every phone
