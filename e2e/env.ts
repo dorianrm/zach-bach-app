@@ -76,7 +76,5 @@ export function serverEnv(): Record<string, string> {
     PIN_ENCRYPTION_KEY: randomBytes(32).toString('base64'),
     ADMIN_PIN_HASH,
     E2E_INSECURE_COOKIES: '1',
-    // Uploads open outside the Dec 18-20 window, so the photo tests can run any day.
-    UPLOADS_OPEN: 'true',
   };
 }

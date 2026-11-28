@@ -3,7 +3,8 @@ import { DayHeading } from '@/components/DayHeading';
 import { PageShell } from '@/components/PageShell';
 import { requireGuest } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { BUCKET, uploadsOpenNow } from '@/lib/photos';
+import { BUCKET } from '@/lib/photos';
+import { uploadStatus } from '@/lib/uploads';
 import { Gallery, type GalleryPhoto } from './Gallery';
 import { UploadForm } from './UploadForm';
 
@@ -22,8 +23,7 @@ export default function PhotosPage() {
 
 async function PhotosContent() {
   await requireGuest('/photos');
-  const photos = await listPhotos();
-  const open = uploadsOpenNow();
+  const [photos, { mode, open }] = await Promise.all([listPhotos(), uploadStatus()]);
 
   return (
     <>
@@ -33,7 +33,9 @@ async function PhotosContent() {
           <UploadForm />
         ) : (
           <p className="rounded-xl bg-card p-[18px] text-[15px] text-body">
-            Uploads open Fri Dec 18 at 6:00 PM and close Sun Dec 20 at noon.
+            {mode === 'closed'
+              ? 'Uploads are paused right now.'
+              : 'Uploads open Fri Dec 18 at 6:00 PM and close Sun Dec 20 at noon.'}
           </p>
         )}
       </section>

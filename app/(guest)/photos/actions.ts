@@ -4,7 +4,8 @@ import { randomUUID } from 'node:crypto';
 import { refresh } from 'next/cache';
 import { requireGuest } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { BUCKET, cleanCaption, cleanTakenAt, MAX_PER_UPLOAD, ownedPhotoId, photoPaths, uploadsOpenNow } from '@/lib/photos';
+import { BUCKET, cleanCaption, cleanTakenAt, MAX_PER_UPLOAD, ownedPhotoId, photoPaths } from '@/lib/photos';
+import { uploadStatus } from '@/lib/uploads';
 
 export type UploadTicket = { path: string; thumbPath: string; url: string; thumbUrl: string };
 export type TicketsResult = { tickets: UploadTicket[] } | { error: string };
@@ -13,7 +14,7 @@ export type TicketsResult = { tickets: UploadTicket[] } | { error: string };
 // path the server picked, inside the guest's own folder, and stops working after 2 hours.
 export async function createUploadUrls(count: number): Promise<TicketsResult> {
   const me = await requireGuest('/photos');
-  if (!uploadsOpenNow()) return { error: 'Uploads are closed right now.' };
+  if (!(await uploadStatus()).open) return { error: 'Uploads are closed right now.' };
   if (!Number.isInteger(count) || count < 1 || count > MAX_PER_UPLOAD) {
     return { error: `Pick up to ${MAX_PER_UPLOAD} photos at a time.` };
   }

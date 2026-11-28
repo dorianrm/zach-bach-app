@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanCaption, cleanTakenAt, exifToIso, fitSize, ownedPhotoId, photoPaths, uploadsOpen } from './photos';
+import { cleanCaption, cleanTakenAt, exifToIso, fitSize, ownedPhotoId, parseUploadMode, photoPaths, uploadsOpen } from './photos';
 import { pacificToUtc } from './time';
 
 const GUEST = '11111111-1111-4111-8111-111111111111';
@@ -10,19 +10,26 @@ describe('uploadsOpen', () => {
   const at = (local: string) => pacificToUtc(local);
 
   it('opens Fri Dec 18 at 6:00 PM Pacific', () => {
-    expect(uploadsOpen(at('2026-12-18T17:59'), undefined)).toBe(false);
-    expect(uploadsOpen(at('2026-12-18T18:00'), undefined)).toBe(true);
+    expect(uploadsOpen(at('2026-12-18T17:59'), 'auto')).toBe(false);
+    expect(uploadsOpen(at('2026-12-18T18:00'), 'auto')).toBe(true);
   });
 
   it('closes Sun Dec 20 at noon Pacific', () => {
-    expect(uploadsOpen(at('2026-12-20T11:59'), undefined)).toBe(true);
-    expect(uploadsOpen(at('2026-12-20T12:00'), undefined)).toBe(false);
+    expect(uploadsOpen(at('2026-12-20T11:59'), 'auto')).toBe(true);
+    expect(uploadsOpen(at('2026-12-20T12:00'), 'auto')).toBe(false);
   });
 
-  it('UPLOADS_OPEN=true opens it any day, other values do not', () => {
-    expect(uploadsOpen(at('2026-11-27T12:00'), 'true')).toBe(true);
-    expect(uploadsOpen(at('2026-11-27T12:00'), '1')).toBe(false);
-    expect(uploadsOpen(at('2026-11-27T12:00'), 'false')).toBe(false);
+  it("'open' opens it any day, 'closed' closes it inside the window", () => {
+    expect(uploadsOpen(at('2026-11-27T12:00'), 'open')).toBe(true);
+    expect(uploadsOpen(at('2026-12-19T12:00'), 'closed')).toBe(false);
+  });
+
+  it("reads a missing or unknown setting as 'auto'", () => {
+    expect(parseUploadMode(undefined)).toBe('auto');
+    expect(parseUploadMode('true')).toBe('auto');
+    expect(parseUploadMode(true)).toBe('auto');
+    expect(parseUploadMode('open')).toBe('open');
+    expect(parseUploadMode('closed')).toBe('closed');
   });
 });
 

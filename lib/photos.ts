@@ -8,12 +8,20 @@ export const BUCKET = 'photos';
 const OPENS = pacificToUtc('2026-12-18T18:00');
 const CLOSES = pacificToUtc('2026-12-20T12:00');
 
-// UPLOADS_OPEN=true skips the window, for testing before the weekend.
-export function uploadsOpen(now: number, flag: string | undefined): boolean {
-  return flag === 'true' || (now >= OPENS && now < CLOSES);
+// Set by Dorian on /admin/photos. 'auto' follows the window, 'open' is for testing before
+// the weekend, 'closed' stops uploads if something goes wrong.
+export const UPLOAD_MODES = ['auto', 'open', 'closed'] as const;
+export type UploadMode = (typeof UPLOAD_MODES)[number];
+
+// The stored setting, or 'auto' when it is missing or not a known mode.
+export function parseUploadMode(value: unknown): UploadMode {
+  return UPLOAD_MODES.find((m) => m === value) ?? 'auto';
 }
 
-export const uploadsOpenNow = () => uploadsOpen(Date.now(), process.env.UPLOADS_OPEN);
+export function uploadsOpen(now: number, mode: UploadMode): boolean {
+  if (mode !== 'auto') return mode === 'open';
+  return now >= OPENS && now < CLOSES;
+}
 
 // Photos per pick. Each one gets two signed upload URLs, so this caps one call's work.
 export const MAX_PER_UPLOAD = 20;
