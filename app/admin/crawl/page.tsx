@@ -5,7 +5,7 @@ import { TeamHistory } from '@/components/TeamHistory';
 import { requireAdmin } from '@/lib/auth';
 import { Banner } from '@/components/Banner';
 import { crawlFinal, lastUndoable, loadRoute, loadStandings, teamsRevealed } from '@/lib/crawl';
-import { hideLastStop, hideTeams, revealNextStop, revealTeams } from './actions';
+import { hideLastStop, hideTeams, reopenCrawl, resetCrawl, revealNextStop, revealTeams } from './actions';
 import { AwardControls } from './AwardControls';
 
 export default function AdminCrawlPage() {
@@ -74,6 +74,15 @@ async function CrawlAdmin() {
       )}
 
       {final && <Banner>Final: {teams[0]?.name} wins with {teams[0]?.total} points.</Banner>}
+      {final && (
+        <Confirm
+          key="reopen"
+          summary="Reopen crawl"
+          body="Every phone stops showing the winner within a few seconds, and the award controls come back. Points stay as they are."
+          button="Yes, reopen the crawl"
+          action={reopenCrawl}
+        />
+      )}
 
       <section className="flex flex-col gap-3">
         <h3 className="text-base font-semibold text-text">Stops</h3>
@@ -131,6 +140,15 @@ async function CrawlAdmin() {
           </li>
         ))}
       </ul>
+
+      {/* Last on the page and two taps, so it is hard to hit by accident in a bar. */}
+      <Confirm
+        key="reset"
+        summary="Reset crawl"
+        body="Hides the teams and every stop, clears the final and takes back every award, so all totals go to 0. Bingo head starts stay. Use it after a test run, not during the crawl."
+        button="Yes, reset the crawl"
+        action={resetCrawl}
+      />
     </>
   );
 }

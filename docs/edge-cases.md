@@ -104,7 +104,9 @@ A running list of edge cases found while building, and how each one is covered. 
 | Award saved | The challenge pick clears, so a second squad tap cannot repeat it | Manual |
 | Final with the top two tied | Refused with a toast naming the tied squads | Unit, E2E |
 | After the final | Every phone shows the winner. Award, bonus and undo are gone and the server refuses them. | E2E |
-| Final tapped by mistake | No button to reopen. Set `settings.crawl_final` to `false` in the SQL editor. | Accepted |
+| Final tapped by mistake | "Reopen crawl" (two taps) clears the final. Award controls come back, points stay. | E2E |
+| Test run before the crawl | "Reset crawl" (two taps, last on the page) hides teams and stops, clears the final, takes back every award | E2E |
+| Reset crawl after bingo head starts (T7) | Bingo rows stay. Other awards are marked undone, not deleted, so SQL can bring them back. | E2E |
 | Challenge removed from `content/crawl.ts` after it was awarded | Re-seed deletes it. Its awards keep their points and lose the link. | Not tested |
 | Duplicate id or an award challenge with no points in `content/crawl.ts` | Seed stops before any write | Unit |
 | Phone tab in the background | Polling stops, and fetches once on return | Not tested |

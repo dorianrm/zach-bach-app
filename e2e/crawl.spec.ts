@@ -183,6 +183,13 @@ test('a mock crawl runs end to end with a guest phone watching', async ({ page, 
 
   await expect(guest.getByText('Final: Gray Squad wins with 3 points!')).toBeVisible({ timeout: 8_000 });
   await guest.screenshot({ path: `test-results/screens/${testInfo.project.name}-crawl-final.png` });
+
+  // A final tapped too early can be reopened. Points stay.
+  await page.getByText('Reopen crawl').click();
+  await submitAction(page, 'Yes, reopen the crawl');
+  await expect(page.getByRole('button', { name: 'Give points' })).toBeVisible();
+  await expect(guest.getByText('Final: Gray Squad wins')).toHaveCount(0, { timeout: 8_000 });
+  await expect(guest.getByRole('listitem', { name: /Gray Squad: 3 points$/ })).toBeVisible();
   await guest.context().close();
 });
 
@@ -209,4 +216,25 @@ test('hiding the last stop takes it off guest phones', async ({ page }) => {
   await expect(page.getByText('Reveal next stop: Test Stop A')).toBeVisible();
   await page.goto('/crawl');
   await expect(page.getByText('First stop revealed soon.')).toBeVisible();
+});
+
+test('reset crawl hides everything and zeroes the totals, but keeps bingo head starts', async ({ page }) => {
+  await setTeamsRevealed(true);
+  await insertAward({ team_id: 'red', points: 2, source: 'bonus' });
+  await insertAward({ team_id: 'gray', points: 3, source: 'bingo', note: 'Bingo 1st' });
+  await joinAsOrganizer(page, ADMIN_PIN);
+  await page.goto('/admin/crawl');
+  await page.getByText('Reveal next stop: Test Stop A').click();
+  await submitAction(page, 'Yes, reveal the stop');
+
+  await page.getByText('Reset crawl').click();
+  await submitAction(page, 'Yes, reset the crawl');
+  await expect(page.getByText('Teams are hidden.')).toBeVisible();
+  await expect(page.getByText('Test Stop A · Hidden')).toBeVisible();
+  await expect(page.getByText('No awards to undo.')).toBeVisible();
+
+  const red = page.getByRole('listitem').filter({ hasText: 'Alex Weirth, Dorian Raboy' });
+  const gray = page.getByRole('listitem').filter({ hasText: 'Benjamin Burton, Chris Acosta' });
+  await expect(red.getByText('0', { exact: true })).toBeVisible();
+  await expect(gray.getByText('3', { exact: true })).toBeVisible();
 });

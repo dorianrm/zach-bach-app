@@ -183,3 +183,33 @@ export async function finalize(): Promise<AwardResult> {
   refresh();
   return { message: 'The crawl is final.', at: Date.now() };
 }
+
+// Undoes a final tapped too early: the winner banner goes away and points unlock.
+// Awards stay as they are.
+export async function reopenCrawl(): Promise<void> {
+  await requireAdmin();
+  const { error } = await db().from('settings').upsert({ key: 'crawl_final', value: false });
+  if (error) throw error;
+  refresh();
+}
+
+// Back to before the crawl: teams and stops hidden, no final, every total at 0.
+// Awards are marked undone, never deleted, so the points can still be recovered with SQL.
+// Bingo head starts (T7) stay: they come from the dinner cards and cannot be redone by hand.
+export async function resetCrawl(): Promise<void> {
+  await requireAdmin();
+  const settings = await db().from('settings').upsert([
+    { key: 'teams_revealed', value: false },
+    { key: 'crawl_final', value: false },
+  ]);
+  if (settings.error) throw settings.error;
+  const stops = await db().from('stops').update({ revealed_at: null }).not('revealed_at', 'is', null);
+  if (stops.error) throw stops.error;
+  const awards = await db()
+    .from('awards')
+    .update({ undone_at: new Date().toISOString() })
+    .is('undone_at', null)
+    .neq('source', 'bingo');
+  if (awards.error) throw awards.error;
+  refresh();
+}
