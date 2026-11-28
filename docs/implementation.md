@@ -34,7 +34,7 @@ Update this table when a thread's PR merges.
 | T5 Stops, placements, bonus, final | Not started | |
 | T6 Card + mark | Live. Placeholder tiles, real ones not set yet. | |
 | T7 Win + head start | Not started | |
-| T8 Upload + view | In review. Phone checks passed. | #10 |
+| T8 Upload + view | Live. Uploads open Dec 18 to 27 (Photos admin switch). | #10 |
 | T9 Tags, filter, delete, hide | Not started | |
 | T10 Testing and dry run | Not started | |
 
