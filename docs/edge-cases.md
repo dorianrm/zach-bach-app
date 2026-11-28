@@ -84,6 +84,29 @@ A running list of edge cases found while building, and how each one is covered. 
 | Phone tab in the background | Polling stops, and fetches once on return | Not tested |
 | Phone offline for a moment | Keeps the last scores, retries on the next tick | Not tested |
 
+## Photos
+
+| Edge case | Expected | Status |
+|---|---|---|
+| Visitor opens `/photos` without joining | Sent to `/join?next=/photos` | E2E |
+| Upload before Fri Dec 18 6:00 PM or after Sun Dec 20 noon | Upload form replaced by the open and close times. `createUploadUrls` refuses too. | Unit |
+| `UPLOADS_OPEN` set to anything but `true` | Window still applies | Unit |
+| 12 MP camera photo | Resized on the phone to 2000 px (under 1 MB) plus a 400 px thumbnail | E2E |
+| EXIF time taken | Read as Pacific wall clock, whatever zone the phone is in | Unit, E2E |
+| No EXIF, or a `0000:00:00` date | `taken_at` is null | Unit |
+| Caption with line breaks, extra spaces or over 140 characters | One trimmed line, cut at 140 | Unit, E2E |
+| Guest saves files from another guest's folder, or a mismatched thumbnail | "That upload is not yours." | Unit |
+| `savePhoto` before both files are in the bucket | "The upload did not finish. Try again." | Not tested |
+| Same photo saved twice (retry after a dropped answer) | One row | Not tested |
+| More than 20 photos picked | First 20 kept, "Up to 20 photos at a time." | Not tested |
+| Signal drops mid-upload | Saved photos leave the list, the rest stay, "Upload stopped." Tap Upload again. | Not tested |
+| File URL without a signature | Refused, the bucket is private | E2E |
+| Gallery left open over 1 hour | Signed URLs expire. Pull to refresh. | Accepted |
+| iPhone HEIC photo | Safari opens it and the canvas converts it to JPEG | Phone pending |
+| HEIC on Android Chrome | Chrome cannot open HEIC: "This photo could not be opened on this phone." | Accepted |
+| Tapped photo | Full size over the tab bar, with name, caption and Close | E2E |
+| Guest removed from `content/guests.ts` | Their photo rows go with them (files stay in the bucket for the export) | Accepted |
+
 ## Calendar
 
 | Edge case | Expected | Status |

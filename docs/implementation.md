@@ -34,7 +34,7 @@ Update this table when a thread's PR merges.
 | T5 Stops, placements, bonus, final | Not started | |
 | T6 Card + mark | Not started | |
 | T7 Win + head start | Not started | |
-| T8 Upload + view | Not started | |
+| T8 Upload + view | In review. Waits on migration `0007` and phone checks. | |
 | T9 Tags, filter, delete, hide | Not started | |
 | T10 Testing and dry run | Not started | |
 
@@ -468,9 +468,9 @@ If missed: a shared Google Photos album link in the group chat.
 
 **Adds**
 
-- Supabase Storage private bucket `photos`
+- Supabase Storage private bucket `photos` (JPEG only, 5 MB per file), created by migration `0007`
 - Migration `0007`: `photos` (`id`, `guest_id`, `path`, `thumb_path`, `caption`, `taken_at`, `tag`, `hidden`, `created_at`)
-- Client libraries `exifr` and `browser-image-compression`
+- Client library `exifr` (reads the time taken). Resizing is a canvas draw in `app/(guest)/photos/prepare.ts`, so `browser-image-compression` is not needed.
 - Server actions `createUploadUrls(count)` and `savePhoto(...)`
 - `/photos` page
 
