@@ -36,3 +36,34 @@ export async function resetCrawl() {
   check('clear awards', (await db.from('awards').delete().not('id', 'is', null)).error);
   check('hide teams', (await db.from('settings').upsert({ key: 'teams_revealed', value: false })).error);
 }
+
+// Deletes every photo row and every file in the test bucket. Files are listed per guest
+// folder, because a failed test can leave files with no row.
+export async function resetPhotos() {
+  check('delete photos', (await db.from('photos').delete().not('id', 'is', null)).error);
+  const bucket = db.storage.from('photos');
+  const folders = await bucket.list('', { limit: 1000 });
+  check('list folders', folders.error);
+  for (const folder of folders.data ?? []) {
+    const files = await bucket.list(folder.name, { limit: 1000 });
+    check('list files', files.error);
+    const paths = (files.data ?? []).map((f) => `${folder.name}/${f.name}`);
+    if (paths.length > 0) check('remove files', (await bucket.remove(paths)).error);
+  }
+}
+
+export async function photosOf(name: string) {
+  const { data, error } = await db
+    .from('photos')
+    .select('path, thumb_path, caption, taken_at, guests!inner(name)')
+    .eq('guests.name', name);
+  check('photos of', error);
+  return data!;
+}
+
+// Size in bytes of a file in the test bucket.
+export async function fileSize(path: string): Promise<number> {
+  const { data, error } = await db.storage.from('photos').download(path);
+  check('download', error);
+  return data!.size;
+}
