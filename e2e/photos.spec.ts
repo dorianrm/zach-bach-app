@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { fileSize, photosOf, resetPhotos, resetPins, setUploadMode } from './db';
+import { fileExists, fileSize, photosOf, resetPhotos, resetPins, seedPhoto, setUploadMode } from './db';
 import { ADMIN_PIN, testDb } from './env';
 import { enter, join, joinAsOrganizer, secondPhone, submitAction } from './helpers';
 
@@ -65,7 +65,7 @@ test('the photos tab asks a visitor to join first', async ({ page }) => {
   await expect(page).toHaveURL('/join?next=%2Fphotos');
 });
 
-test('a guest uploads two photos, and another guest sees them with name and caption', async ({ page, browser }, testInfo) => {
+test('a guest uploads two tagged photos, and another guest sees them with name and caption', async ({ page, browser }, testInfo) => {
   await join(page, 'Alex Weirth', '1234', { setup: true });
   await page.getByRole('link', { name: 'Photos' }).click();
   await expect(page).toHaveURL('/photos');
@@ -76,6 +76,9 @@ test('a guest uploads two photos, and another guest sees them with name and capt
     await cameraPhoto(page, 'IMG_0002.JPG', '#ff6b5e', '2026:12:18 21:40:00'),
   ]);
   await page.getByLabel('Caption for photo 1').fill('  Zach at   dinner ');
+  // Tags pre-selected from the itinerary card at the time taken: 7:05 PM dinner, 9:40 PM crawl.
+  await expect(page.getByLabel('Tag for photo 1')).toHaveValue('Dinner');
+  await expect(page.getByLabel('Tag for photo 2')).toHaveValue('Crawl');
   await page.screenshot({ path: `test-results/screens/${testInfo.project.name}-photos-picked.png` });
   await page.getByRole('button', { name: 'Upload 2 photos' }).click();
   await expect(page.getByText('2 photos added.')).toBeVisible({ timeout: 15_000 });
@@ -84,6 +87,7 @@ test('a guest uploads two photos, and another guest sees them with name and capt
   const rows = await photosOf('Alex Weirth');
   expect(rows.map((r) => r.taken_at).sort()).toEqual(['2026-12-19T03:05:00+00:00', '2026-12-19T05:40:00+00:00']);
   expect(rows.map((r) => r.caption).sort()).toEqual(['Zach at dinner', null].sort());
+  expect(rows.map((r) => r.tag).sort()).toEqual(['Crawl', 'Dinner']);
   // Resized on the phone: the 3000 px photo is under 1 MB, and the thumbnail is much smaller.
   const full = await fileSize(rows[0].path);
   const thumb = await fileSize(rows[0].thumb_path);
@@ -100,11 +104,24 @@ test('a guest uploads two photos, and another guest sees them with name and capt
   await expect.poll(() => photo.locator('img').evaluate((img: HTMLImageElement) => img.naturalHeight)).toBe(400);
   await guest.screenshot({ path: `test-results/screens/${testInfo.project.name}-photos.png` });
 
+  // Filter by tag.
+  const filter = guest.getByRole('navigation', { name: 'Filter by tag' });
+  await filter.getByRole('link', { name: 'Crawl' }).click();
+  await expect(guest).toHaveURL('/photos?tag=Crawl');
+  await expect(guest.getByRole('button', { name: /^Photo by Alex Weirth/ })).toHaveCount(1);
+  await filter.getByRole('link', { name: 'Topgolf' }).click();
+  await expect(guest.getByText('No Topgolf photos yet.')).toBeVisible();
+  await guest.goto('/photos?tag=Nope');
+  await expect(guest.getByRole('button', { name: /^Photo by Alex Weirth/ })).toHaveCount(2);
+
   // Tap for full size.
   await photo.click();
   const dialog = guest.getByRole('dialog', { name: 'Photo by Alex Weirth' });
   await expect(dialog.getByRole('img', { name: 'Zach at dinner' })).toBeVisible();
   await expect.poll(() => dialog.getByRole('img').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(2000);
+  // Not their photo: no Delete, and no organizer controls.
+  await expect(dialog.getByRole('button', { name: 'Delete' })).toHaveCount(0);
+  await expect(dialog.getByRole('button', { name: 'Hide' })).toHaveCount(0);
   await guest.screenshot({ path: `test-results/screens/${testInfo.project.name}-photo-full.png` });
   await dialog.getByRole('button', { name: 'Close' }).click();
   await expect(dialog).toBeHidden();
@@ -156,4 +173,70 @@ test('Dorian closes, opens and sets uploads back to Auto from the phone', async 
   await guest.reload();
   await expect(guest.getByLabel('Add photos')).toBeVisible();
   await guest.context().close();
+});
+
+test('a guest deletes their own photo, files included, but not someone else\'s', async ({ page }) => {
+  const jpeg = (await cameraPhoto(page, 'x.jpg', '#2d4f9e', '2026:12:18 19:05:31')).buffer;
+  const mine = await seedPhoto('Alex Weirth', jpeg, { caption: 'Mine' });
+  await seedPhoto('Benjamin Burton', jpeg, { caption: 'Theirs' });
+
+  await join(page, 'Alex Weirth', '1234', { setup: true });
+  await page.goto('/photos');
+  await page.getByRole('button', { name: 'Photo by Benjamin Burton: Theirs' }).click();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Delete' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  await page.getByRole('button', { name: 'Photo by Alex Weirth: Mine' }).click();
+  const dialog = page.getByRole('dialog');
+  // Two taps.
+  await dialog.getByRole('button', { name: 'Delete' }).click();
+  await submitAction(page, 'Yes, delete');
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Photo by Alex Weirth: Mine' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Photo by Benjamin Burton: Theirs' })).toBeVisible();
+  expect(await fileExists(mine.path)).toBe(false);
+  expect(await fileExists(mine.thumbPath)).toBe(false);
+});
+
+test('Dorian hides a photo and changes its tag, and guests stop seeing it', async ({ page, browser }, testInfo) => {
+  const jpeg = (await cameraPhoto(page, 'x.jpg', '#ff6b5e', '2026:12:18 19:05:31')).buffer;
+  await seedPhoto('Alex Weirth', jpeg, { caption: 'Blurry', tag: 'Dinner' });
+
+  await joinAsOrganizer(page, ADMIN_PIN);
+  await page.goto('/photos');
+  await page.getByRole('button', { name: 'Photo by Alex Weirth: Blurry' }).click();
+  const dialog = page.getByRole('dialog');
+  const changed = page.waitForResponse((r) => r.request().method() === 'POST');
+  await dialog.getByLabel('Tag').selectOption('Pub');
+  await changed;
+  await expect(dialog.getByText('· Pub')).toBeVisible();
+  await submitAction(page, 'Hide');
+  await expect(dialog.getByRole('button', { name: 'Unhide' })).toBeVisible();
+  await page.screenshot({ path: `test-results/screens/${testInfo.project.name}-photo-admin-controls.png` });
+  await dialog.getByRole('button', { name: 'Close' }).click();
+  // Dorian still sees it, marked, so he can unhide it.
+  await expect(page.getByRole('button', { name: 'Photo by Alex Weirth: Blurry, hidden' })).toBeVisible();
+  expect((await photosOf('Alex Weirth'))[0]).toMatchObject({ tag: 'Pub', hidden: true });
+
+  const guest = await secondPhone(browser, testInfo);
+  await join(guest, 'Benjamin Burton', '5678', { setup: true });
+  await guest.goto('/photos');
+  await expect(guest.getByText('No photos yet.')).toBeVisible();
+  await guest.context().close();
+});
+
+test('Dorian clears every test photo from Photos admin', async ({ page }) => {
+  const jpeg = (await cameraPhoto(page, 'x.jpg', '#2d4f9e', '2026:12:18 19:05:31')).buffer;
+  const a = await seedPhoto('Alex Weirth', jpeg, { caption: 'Test 1' });
+  await seedPhoto('Benjamin Burton', jpeg, { caption: 'Test 2', hidden: true });
+
+  await joinAsOrganizer(page, ADMIN_PIN);
+  await page.goto('/admin/photos');
+  await expect(page.getByText('2 photos in the gallery, 1 hidden.')).toBeVisible();
+  await page.getByText('Delete all photos').click();
+  await submitAction(page, 'Yes, delete all 2');
+  await expect(page.getByText('0 photos in the gallery.')).toBeVisible();
+  expect(await fileExists(a.path)).toBe(false);
+  await page.goto('/photos');
+  await expect(page.getByText('No photos yet.')).toBeVisible();
 });

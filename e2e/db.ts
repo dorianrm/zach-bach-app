@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { GUESTS, TEAMS, testDb } from './env';
 
@@ -60,7 +61,7 @@ export async function setUploadMode(mode: 'auto' | 'open' | 'closed') {
 export async function photosOf(name: string) {
   const { data, error } = await db
     .from('photos')
-    .select('path, thumb_path, caption, taken_at, guests!inner(name)')
+    .select('path, thumb_path, caption, taken_at, tag, hidden, guests!inner(name)')
     .eq('guests.name', name);
   check('photos of', error);
   return data!;
@@ -76,4 +77,31 @@ export async function fileSize(path: string): Promise<number> {
 // Deletes every bingo card, so each bingo test starts before anyone opened /bingo.
 export async function resetBingo() {
   check('clear bingo cards', (await db.from('bingo_cards').delete().not('guest_id', 'is', null)).error);
+}
+
+// A photo row with both files in the bucket, as if the guest had uploaded it.
+export async function seedPhoto(
+  name: string,
+  jpeg: Buffer,
+  fields: { caption?: string; tag?: string; hidden?: boolean } = {},
+): Promise<{ path: string; thumbPath: string }> {
+  const guest = await guestId(name);
+  const id = randomUUID();
+  const path = `${guest}/${id}.jpg`;
+  const thumbPath = `${guest}/${id}-thumb.jpg`;
+  const bucket = db.storage.from('photos');
+  for (const p of [path, thumbPath]) {
+    check('upload', (await bucket.upload(p, jpeg, { contentType: 'image/jpeg' })).error);
+  }
+  check(
+    'insert photo',
+    (await db.from('photos').insert({ id, guest_id: guest, path, thumb_path: thumbPath, ...fields })).error,
+  );
+  return { path, thumbPath };
+}
+
+export async function fileExists(path: string): Promise<boolean> {
+  const { data, error } = await db.storage.from('photos').exists(path);
+  if (error && !data) return false;
+  return data;
 }
