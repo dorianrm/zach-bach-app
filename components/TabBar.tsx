@@ -29,7 +29,7 @@ const tabs: { id: Tab; label: string; href: string; ready: boolean; icon: ReactN
     id: 'photos',
     label: 'Photos',
     href: '/photos',
-    ready: false,
+    ready: true,
     icon: icon(<><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="12" cy="12" r="3.5" /></>),
   },
   // Sign-in and organizer pages (/join, /admin) live behind this tab.
