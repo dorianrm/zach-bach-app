@@ -41,7 +41,7 @@ test('the organizer signs in with the admin PIN, which also unlocks admin', asyn
   await signInAsOrganizer(page);
   await page.goto('/more');
   await expect(page.getByText('Signed in as Dorian Raboy.')).toBeVisible();
-  await page.getByRole('link', { name: 'Admin' }).click();
+  await page.getByRole('link', { name: 'Admin', exact: true }).click();
   await page.getByRole('link', { name: 'Guest PINs' }).click();
   await expect(page.getByRole('listitem').filter({ hasText: 'Alex Weirth' })).toBeVisible();
   await expect(page.getByRole('listitem').filter({ hasText: 'Dorian Raboy' })).toHaveCount(0);

@@ -65,6 +65,24 @@ A running list of edge cases found while building, and how each one is covered. 
 | `$` in the hash read from `.env` | Hash uses `:` separators, so Next.js does not expand it | Unit (hash format) |
 | Dorian on the Guest PINs page | Not listed | E2E |
 
+## Crawl
+
+| Edge case | Expected | Status |
+|---|---|---|
+| Visitor opens `/crawl` without joining | Sent to `/join?next=/crawl` | E2E |
+| Guest reads `/api/state` before the reveal | `{ teamsRevealed: false }`, no rosters or scores | E2E |
+| `/api/state` without a session | 401 | E2E |
+| Guest opens `/admin/crawl` | Sent back to `/admin` | E2E |
+| Dorian reveals, guest phone not reloaded | Rosters and 0 points within ~5 s, own squad highlighted | E2E |
+| Stray tap on "Reveal teams" | Needs a second tap ("Yes, reveal to everyone") | E2E |
+| Reveal tapped too early | "Hide teams" sends phones back to "Teams revealed soon." within ~5 s. Anyone who already looked has seen the squads. | E2E |
+| "Hide teams" right after a reveal | Opens closed, so the first tap opens it (React used to reuse the open reveal panel) | E2E |
+| Undone award | Left out of the totals | Unit |
+| Two teams tied | Content order (`teams.sort`) | Unit |
+| Guest with no team (Zach) | Not on any roster, no "Your squad" | Unit |
+| Phone tab in the background | Polling stops, and fetches once on return | Not tested |
+| Phone offline for a moment | Keeps the last scores, retries on the next tick | Not tested |
+
 ## Calendar
 
 | Edge case | Expected | Status |

@@ -278,8 +278,9 @@ If missed: paper passports for the route and challenges, and Zach's tally sheet 
 - Migration `0004`: `awards` (`id`, `team_id`, `challenge_id`, `points`, `source`, `note`, `created_at`, `undone_at`). `challenge_id` stays null until T5.
 - `GET /api/state`: `teamsRevealed`, rosters, and scores
 - Client polling hook, 5 s, paused when the tab is hidden
-- `/crawl` guest page and `/admin/crawl`
-- Server action `revealTeams()`: sets `settings.teams_revealed = true`
+- `/crawl` guest page (joined guests only) and `/admin/crawl`, linked from More for Dorian
+- `settings.teams_revealed` row, `false` until the reveal
+- Server actions `revealTeams()` and `hideTeams()`: set `settings.teams_revealed` to `true` or `false`
 
 **Score query**
 
@@ -291,11 +292,12 @@ group by t.id
 order by total desc, t.sort;
 ```
 
-Scores are always computed from `awards`, never stored. Undo and history then work with no extra code.
+Scores are always computed from `awards`, never stored. Undo and history then work with no extra code. The app sums live rows in `lib/scores.ts` (same result as the query above), so the rule is unit tested.
 
 **Behavior**
 
 - Before the reveal: `/crawl` shows "Teams revealed soon." `/api/state` sends no rosters or scores.
+- Dorian sees the rosters on `/admin/crawl` before the reveal. "Reveal teams" and "Hide teams" each take two taps. Hiding is for a reveal tapped too early.
 - After: rosters with team colors, the guest's own team highlighted, and team totals.
 
 **Done when**
