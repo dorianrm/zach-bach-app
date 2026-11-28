@@ -54,7 +54,8 @@ A running list of edge cases found while building, and how each one is covered. 
 | Edge case | Expected | Status |
 |---|---|---|
 | Guest opens `/admin` or `/admin/pins` | "This page is for the organizer only." or sent back to `/admin` | E2E |
-| Admin link on More | Shows only for Dorian | E2E |
+| Organizer section on More | Shows only for Dorian, one link per admin page | E2E |
+| Admin window ended, Dorian opens an organizer page | PIN prompt, then back to that page | E2E |
 | Dorian on `/join` | Same label ("Your PIN") and messages as any guest | E2E |
 | Wrong admin PIN at `/join` | "Wrong PIN." | E2E |
 | 10 wrong tries at `/join` on Dorian | Locked 10 minutes | E2E |
@@ -64,6 +65,24 @@ A running list of edge cases found while building, and how each one is covered. 
 | New `ADMIN_PIN_HASH` in Vercel | Dorian signed out on every device | Not tested |
 | `$` in the hash read from `.env` | Hash uses `:` separators, so Next.js does not expand it | Unit (hash format) |
 | Dorian on the Guest PINs page | Not listed | E2E |
+
+## Crawl
+
+| Edge case | Expected | Status |
+|---|---|---|
+| Visitor opens `/crawl` without joining | Sent to `/join?next=/crawl` | E2E |
+| Guest reads `/api/state` before the reveal | `{ teamsRevealed: false }`, no rosters or scores | E2E |
+| `/api/state` without a session | 401 | E2E |
+| Guest opens `/admin/crawl` | Sent back to `/admin` | E2E |
+| Dorian reveals, guest phone not reloaded | Rosters and 0 points within ~5 s, own squad highlighted | E2E |
+| Stray tap on "Reveal teams" | Needs a second tap ("Yes, reveal to everyone") | E2E |
+| Reveal tapped too early | "Hide teams" sends phones back to "Teams revealed soon." within ~5 s. Anyone who already looked has seen the squads. | E2E |
+| "Hide teams" right after a reveal | Opens closed, so the first tap opens it (React used to reuse the open reveal panel) | E2E |
+| Undone award | Left out of the totals | Unit |
+| Two teams tied | Content order (`teams.sort`) | Unit |
+| Guest with no team (Zach) | Not on any roster, no "Your squad" | Unit |
+| Phone tab in the background | Polling stops, and fetches once on return | Not tested |
+| Phone offline for a moment | Keeps the last scores, retries on the next tick | Not tested |
 
 ## Calendar
 

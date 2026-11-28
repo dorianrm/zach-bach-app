@@ -24,7 +24,7 @@ export default function PinsPage() {
 }
 
 async function PinList() {
-  await requireAdmin();
+  await requireAdmin('/admin/pins');
   // The organizer signs in with the admin PIN, which lives in Vercel, so the row is left out.
   const { data, error } = await db()
     .from('guests')

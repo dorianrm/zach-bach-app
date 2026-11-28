@@ -3,7 +3,7 @@
 import { refresh } from 'next/cache';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { adminPinHash, lockedMessage, requireAdmin, requireGuest, sessionSecret } from '@/lib/auth';
+import { adminPinHash, lockedMessage, requireAdmin, requireGuest, safeNext, sessionSecret } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { adminPinMatches, isAdminPin, pinFingerprint } from '@/lib/pin';
 import { ADMIN_TTL, cookieOptions, SESSION_COOKIE, SESSION_TTL, signSession } from '@/lib/session';
@@ -35,7 +35,8 @@ export async function adminLogin(_prev: AdminLoginState, form: FormData): Promis
   const adminUntil = Math.floor(Date.now() / 1000) + ADMIN_TTL;
   const token = await signSession({ guestId: guest.id, pinVersion: pinFingerprint(hash), adminUntil }, sessionSecret());
   (await cookies()).set(SESSION_COOKIE, token, cookieOptions(SESSION_TTL));
-  redirect('/admin');
+  // Back to the organizer page that asked (safeNext keeps it on this site).
+  redirect(safeNext(form.get('next')));
 }
 
 // Clears the PIN and any lock. The guest sets a new PIN on their next /join.

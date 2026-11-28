@@ -30,3 +30,9 @@ export async function guestId(name: string): Promise<string> {
   check('guest id', error);
   return data!.id;
 }
+
+// Hides the teams again and clears every award, so each crawl test starts before the reveal.
+export async function resetCrawl() {
+  check('clear awards', (await db.from('awards').delete().not('id', 'is', null)).error);
+  check('hide teams', (await db.from('settings').upsert({ key: 'teams_revealed', value: false })).error);
+}

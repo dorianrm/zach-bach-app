@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import { PageShell } from '@/components/PageShell';
+import { DayHeading } from '@/components/DayHeading';
 import { currentGuest } from '@/lib/auth';
+import { organizerPages } from '@/lib/organizer';
 
 const linkClass = 'flex min-h-14 items-center rounded-xl bg-card px-[18px] text-base font-semibold text-link';
 
@@ -38,15 +40,22 @@ async function MoreLinks() {
             {me ? 'Switch guest' : 'Join with your name'}
           </a>
         </li>
-        {/* Only the organizer sees the admin link. /admin checks again on the server. */}
-        {me?.isAdmin && (
-          <li>
-            <a href="/admin" className={linkClass}>
-              Admin
-            </a>
-          </li>
-        )}
       </ul>
+      {/* Only the organizer sees this section. Each page checks again on the server. */}
+      {me?.isAdmin && (
+        <div className="flex flex-col gap-3 pt-2">
+          <DayHeading>Organizer</DayHeading>
+          <ul className="flex flex-col gap-3">
+            {organizerPages.map((p) => (
+              <li key={p.href}>
+                <a href={p.href} className={linkClass}>
+                  {p.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </>
   );
 }
