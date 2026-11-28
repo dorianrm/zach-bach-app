@@ -20,7 +20,8 @@ test('before the reveal, guests see no rosters, even in /api/state', async ({ pa
   await expect(page.getByText('Teams revealed soon.')).toBeVisible();
 
   const state = await page.request.get('/api/state');
-  expect(await state.json()).toEqual({ teamsRevealed: false });
+  // Bingo winners are names only, so they may show before the reveal.
+  expect(await state.json()).toEqual({ teamsRevealed: false, bingoWinners: expect.any(Array) });
 });
 
 test('/api/state needs a joined guest', async ({ page }) => {

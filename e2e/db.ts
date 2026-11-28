@@ -73,7 +73,27 @@ export async function fileSize(path: string): Promise<number> {
   return data!.size;
 }
 
-// Deletes every bingo card, so each bingo test starts before anyone opened /bingo.
+// Deletes every bingo card and bingo award, so each bingo test starts before anyone opened /bingo.
 export async function resetBingo() {
   check('clear bingo cards', (await db.from('bingo_cards').delete().not('guest_id', 'is', null)).error);
+  check('clear bingo awards', (await db.from('awards').delete().eq('source', 'bingo')).error);
+}
+
+// A card with the top row marked, written straight to the database, for claim tests.
+export async function giveFullLine(name: string) {
+  const marks = Array.from({ length: 25 }, (_, i) => i < 5 || i === 12);
+  const tile_order = Array.from({ length: 24 }, (_, i) => i);
+  check('insert card', (await db.from('bingo_cards').insert({ guest_id: await guestId(name), tile_order, marks })).error);
+}
+
+export async function claimBingoPlace(name: string): Promise<number | null> {
+  const { data, error } = await db.rpc('claim_bingo_place', { p_guest: await guestId(name) });
+  check('claim bingo place', error);
+  return data;
+}
+
+export async function bingoAwards(): Promise<{ team_id: string; points: number; note: string }[]> {
+  const { data, error } = await db.from('awards').select('team_id, points, note').eq('source', 'bingo').order('points', { ascending: false });
+  check('bingo awards', error);
+  return data!;
 }
