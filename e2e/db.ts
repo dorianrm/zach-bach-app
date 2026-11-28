@@ -92,8 +92,20 @@ export async function claimBingoPlace(name: string): Promise<number | null> {
   return data;
 }
 
+// Live bingo rows only: a removed win is undone, not deleted.
 export async function bingoAwards(): Promise<{ team_id: string; points: number; note: string }[]> {
-  const { data, error } = await db.from('awards').select('team_id, points, note').eq('source', 'bingo').order('points', { ascending: false });
+  const { data, error } = await db
+    .from('awards')
+    .select('team_id, points, note')
+    .eq('source', 'bingo')
+    .is('undone_at', null)
+    .order('points', { ascending: false });
   check('bingo awards', error);
   return data!;
+}
+
+export async function bingoCardCount(): Promise<number> {
+  const { count, error } = await db.from('bingo_cards').select('guest_id', { count: 'exact', head: true });
+  check('count bingo cards', error);
+  return count!;
 }
