@@ -31,6 +31,11 @@ async function AdminHome() {
             Guest PINs
           </a>
         </li>
+        <li>
+          <a href="/admin/crawl" className="flex min-h-14 items-center rounded-xl bg-card px-[18px] text-base font-semibold text-link">
+            Crawl admin
+          </a>
+        </li>
       </ul>
     </>
   );

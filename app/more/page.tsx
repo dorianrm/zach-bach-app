@@ -40,11 +40,18 @@ async function MoreLinks() {
         </li>
         {/* Only the organizer sees the admin link. /admin checks again on the server. */}
         {me?.isAdmin && (
-          <li>
-            <a href="/admin" className={linkClass}>
-              Admin
-            </a>
-          </li>
+          <>
+            <li>
+              <a href="/admin" className={linkClass}>
+                Admin
+              </a>
+            </li>
+            <li>
+              <a href="/admin/crawl" className={linkClass}>
+                Crawl admin
+              </a>
+            </li>
+          </>
         )}
       </ul>
     </>
