@@ -37,8 +37,12 @@ test('Dorian sees every player, and removing a wrong win keeps the other places'
 
   await page.getByText("Remove Benjamin Burton's win").click();
   await submitAction(page, 'Yes, remove 2nd');
-  await expect(players.filter({ hasText: 'Benjamin Burton' })).toContainText('0 of 24 marked');
-  await expect(players.filter({ hasText: 'Benjamin Burton' })).not.toContainText('2nd');
+  // The answer shows where Dorian tapped, and the panel is gone.
+  const ben = players.filter({ hasText: 'Benjamin Burton' });
+  await expect(ben.getByRole('status')).toHaveText("Removed Benjamin Burton's 2nd. Points taken back, card cleared.");
+  await expect(page.getByText("Remove Benjamin Burton's win")).toHaveCount(0);
+  await expect(ben).toContainText('0 of 24 marked');
+  await expect(ben.getByText('2nd', { exact: true })).toHaveCount(0);
   expect(await bingoAwards()).toEqual([
     { team_id: 'red', points: 3, note: 'Bingo 1st: Alex Weirth' },
     { team_id: 'gray', points: 1, note: 'Bingo 3rd: Chris Acosta' },
@@ -91,7 +95,16 @@ test('clear all bingo deletes every card and bingo point', async ({ page }) => {
   await page.goto('/admin/bingo');
   await page.getByText('Clear all bingo').click();
   await submitAction(page, 'Yes, clear every card');
+  // The answer shows right under the button, which sits below the player list.
+  await expect(page.getByRole('status').filter({ hasText: 'Cleared' })).toHaveText('Cleared 2 cards and 1 bingo award.');
+  await expect(page.getByRole('status').filter({ hasText: 'Cleared' })).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'Yes, clear every card' })).toBeHidden();
   await expect(page.getByRole('list', { name: 'Players' }).getByText('No card yet')).toHaveCount(4);
   expect(await bingoCardCount()).toBe(0);
   expect(await bingoAwards()).toEqual([]);
+
+  // A second clear says there was nothing left.
+  await page.getByText('Clear all bingo').click();
+  await submitAction(page, 'Yes, clear every card');
+  await expect(page.getByRole('status').filter({ hasText: 'Nothing' })).toHaveText('Nothing to clear. No one has a card yet.');
 });

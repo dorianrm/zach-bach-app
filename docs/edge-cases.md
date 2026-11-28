@@ -139,6 +139,8 @@ A running list of edge cases found while building, and how each one is covered. 
 | Removed place is the last one taken | The next line gets it | E2E |
 | Removed place is not the last one taken | Stays empty. Dorian adds points by hand if needed. | E2E |
 | Double tap on "Remove" | Undoes one award only | Not tested |
+| Admin taps a bingo control below the fold | Panel closes, and a message right under it says what changed. The list that changed may be off screen. | E2E |
+| "Clear all bingo" with nothing to clear | "Nothing to clear. No one has a card yet." | E2E |
 | Test data from preview checks | "Clear all bingo" on `/admin/bingo` deletes every card and bingo point | E2E |
 | Guest opens `/admin/bingo` | Sent to `/admin` | E2E |
 | Guest removed from content after winning | Card deleted with the guest. Their place stays empty, the next line never reuses it. | Accepted |
